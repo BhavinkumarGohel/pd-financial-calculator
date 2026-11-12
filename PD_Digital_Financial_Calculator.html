@@ -1,0 +1,3573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PD Digital Financial Calculator | Bank-Grade Financial Suite</title>
+  
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            navy: {
+              950: '#060c1a',
+              900: '#0b1528',
+              800: '#13223f',
+              700: '#1d325b',
+            },
+            brand: {
+              blue: '#1d4ed8',
+              emerald: '#059669',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Chart.js via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
+    }
+    .tabular-nums {
+      font-variant-numeric: tabular-nums;
+    }
+    /* Custom Range Sliders */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 6px;
+      background: #e2e8f0;
+      border-radius: 999px;
+      outline: none;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #1d4ed8;
+      border: 3px solid #ffffff;
+      box-shadow: 0 1px 4px rgba(15, 23, 42, 0.35);
+      cursor: pointer;
+      transition: transform 0.15s ease, background-color 0.15s ease;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.12);
+      background: #059669;
+    }
+    input[type="range"]::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #1d4ed8;
+      border: 3px solid #ffffff;
+      box-shadow: 0 1px 4px rgba(15, 23, 42, 0.35);
+      cursor: pointer;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 999px;
+    }
+    .sidebar-scroll::-webkit-scrollbar-thumb {
+      background: #334155;
+    }
+
+    /* Print / PDF Styling */
+    @media print {
+      body {
+        background: #ffffff !important;
+        color: #000000 !important;
+      }
+      #sidebar, #mobileOverlay, #topHeader, #actionToolbar, #formulaToggleBtn, .no-print, #toastContainer, #modalBackdrop {
+        display: none !important;
+      }
+      #mainWrapper {
+        margin-left: 0 !important;
+        width: 100% !important;
+        padding: 0 !important;
+      }
+      #printHeader {
+        display: flex !important;
+      }
+      #calculatorContainer {
+        box-shadow: none !important;
+        border: 1px solid #cbd5e1 !important;
+        padding: 16px !important;
+      }
+      input, select {
+        border: none !important;
+        background: transparent !important;
+        font-weight: 600 !important;
+      }
+      input[type="range"] {
+        display: none !important;
+      }
+      .print-break-inside {
+        break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body class="antialiased selection:bg-blue-100 selection:text-blue-900">
+
+  <!-- Mobile Sidebar Backdrop -->
+  <div id="mobileOverlay" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-40 hidden lg:hidden transition-opacity" onclick="toggleMobileSidebar(false)"></div>
+
+  <!-- Left Navigation Sidebar -->
+  <aside id="sidebar" class="fixed top-0 left-0 z-50 h-screen w-72 bg-navy-900 text-slate-200 flex flex-col border-r border-slate-800 transform -translate-x-full lg:translate-x-0 transition-transform duration-200 ease-out">
+    <!-- Brand Logo -->
+    <div class="px-5 py-4 border-b border-slate-800/80 flex items-center justify-between bg-navy-950/50">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-emerald-500 flex items-center justify-center text-white font-extrabold text-lg shadow-lg shadow-blue-900/40">
+          PD
+        </div>
+        <div>
+          <h1 class="font-bold text-white text-sm tracking-tight leading-tight">PD Digital</h1>
+          <p class="text-[11px] text-emerald-400 font-medium tracking-wide">Financial Calculator</p>
+        </div>
+      </div>
+      <button class="lg:hidden text-slate-400 hover:text-white p-1.5 rounded-lg" onclick="toggleMobileSidebar(false)" aria-label="Close Menu">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <!-- Quick Category Filter Pills -->
+    <div class="px-4 py-2.5 border-b border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
+      <span>33 Bank-Grade Tools</span>
+      <span class="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 font-semibold">INR ₹ Edition</span>
+    </div>
+
+    <!-- Navigation Tree -->
+    <nav id="sidebarNav" class="flex-1 overflow-y-auto sidebar-scroll px-3 py-3 space-y-4">
+      <!-- Dynamically rendered categories & calculators -->
+    </nav>
+
+    <!-- Sidebar Footer -->
+    <div class="p-3.5 border-t border-slate-800 bg-navy-950/60 text-[11px] text-slate-400">
+      <div class="flex items-center justify-between mb-1">
+        <span class="font-medium text-slate-300">Saved Scenarios</span>
+        <span id="sidebarSavedCount" class="px-2 py-0.5 rounded-full bg-blue-600/30 text-blue-300 font-semibold">0</span>
+      </div>
+      <p class="text-[10px] text-slate-500 leading-relaxed">Offline-ready • LocalStorage Synced</p>
+    </div>
+  </aside>
+
+  <!-- Main Workspace Wrapper -->
+  <div id="mainWrapper" class="lg:ml-72 min-h-screen flex flex-col">
+    
+    <!-- Top Header Bar -->
+    <header id="topHeader" class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/90 px-4 sm:px-6 py-3">
+      <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+        
+        <!-- Left: Mobile Hamburger + Search -->
+        <div class="flex items-center gap-3 flex-1 min-w-[240px] max-w-xl">
+          <button onclick="toggleMobileSidebar(true)" class="lg:hidden p-2.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-100" aria-label="Open Navigation">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+          </button>
+
+          <!-- Instant Live Search -->
+          <div class="relative flex-1">
+            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            </div>
+            <input 
+              type="text" 
+              id="globalSearchInput" 
+              placeholder="Search any calculator by name (e.g., SIP, FOIR, LTV, Pre-EMI, Age)..." 
+              class="w-full pl-10 pr-9 py-2 text-sm bg-slate-100/80 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-600 focus:ring-2 focus:ring-blue-600/15 outline-none transition-all"
+              autocomplete="off"
+            />
+            <button id="clearSearchBtn" onclick="clearGlobalSearch()" class="hidden absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+
+            <!-- Instant Search Dropdown -->
+            <div id="searchDropdown" class="hidden absolute left-0 right-0 mt-1.5 bg-white rounded-xl shadow-xl border border-slate-200 max-h-80 overflow-y-auto z-50 divide-y divide-slate-100">
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Saved Scenarios & Compare Buttons -->
+        <div class="flex items-center gap-2 sm:gap-2.5">
+          <button onclick="openSavedDrawer()" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium bg-slate-100 hover:bg-slate-200/80 text-slate-700 border border-slate-200/80 transition">
+            <svg class="w-4 h-4 text-amber-500" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"/></svg>
+            <span class="hidden sm:inline">Saved</span>
+            <span id="headerSavedBadge" class="px-1.5 py-0.5 text-[11px] rounded-full bg-slate-800 text-white font-semibold tabular-nums">0</span>
+          </button>
+
+          <button onclick="openCompareModal()" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-xs transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+            <span>Compare</span>
+            <span id="headerCompareBadge" class="px-1.5 py-0.5 text-[11px] rounded-full bg-white text-blue-700 font-bold tabular-nums">0</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Print-Only Header (Visible when printing / saving PDF) -->
+    <div id="printHeader" class="hidden items-center justify-between border-b-2 border-slate-800 pb-4 mb-6">
+      <div>
+        <h1 class="text-xl font-bold text-slate-900">PD Digital Financial Calculator</h1>
+        <p class="text-xs text-slate-600">Bank-Grade Financial Assessment &amp; Calculation Report</p>
+      </div>
+      <div class="text-right text-xs text-slate-600">
+        <p id="printReportDate"></p>
+        <p>Currency: Indian Rupee (INR ₹)</p>
+      </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 px-4 sm:px-6 py-6 max-w-7xl w-full mx-auto space-y-5">
+      
+      <!-- Breadcrumb & Calculator Title Header -->
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs">
+        <div>
+          <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-blue-600 mb-1">
+            <span id="activeCategoryBadge">Category</span>
+            <span class="text-slate-300">•</span>
+            <span id="activeCalcCode" class="text-slate-400 font-mono">#01</span>
+          </div>
+          <h2 id="activeCalcTitle" class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">Calculator Title</h2>
+          <p id="activeCalcDesc" class="text-xs sm:text-sm text-slate-500 mt-0.5">Description</p>
+        </div>
+
+        <!-- Action Toolbar -->
+        <div id="actionToolbar" class="flex flex-wrap items-center gap-2">
+          <button onclick="resetCurrentCalculator()" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 transition" title="Reset inputs to default">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            Reset
+          </button>
+
+          <button onclick="promptSaveScenario()" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 transition">
+            <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
+            Save Scenario
+          </button>
+
+          <button onclick="addCurrentToCompare()" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 transition">
+            <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            Add to Compare
+          </button>
+
+          <button onclick="printReport()" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white shadow-xs transition">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+            Print / PDF Report
+          </button>
+        </div>
+      </div>
+
+      <!-- Dynamic Calculator Workspace -->
+      <div id="calculatorContainer" class="space-y-6">
+        <!-- Rendered dynamically by JS -->
+      </div>
+
+      <!-- Formula Disclosure Accordion -->
+      <div class="bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-xs print-break-inside">
+        <button id="formulaToggleBtn" onclick="toggleFormulaBox()" class="w-full px-5 py-3.5 flex items-center justify-between text-left hover:bg-slate-50 transition">
+          <div class="flex items-center gap-2.5">
+            <span class="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-mono font-bold text-xs">ƒx</span>
+            <span class="text-sm font-semibold text-slate-800">Mathematical Formula &amp; Methodology</span>
+          </div>
+          <svg id="formulaChevron" class="w-4 h-4 text-slate-500 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div id="formulaContent" class="hidden px-5 pb-4 pt-1 border-t border-slate-100 bg-slate-50/70">
+          <div id="formulaText" class="text-xs sm:text-sm text-slate-700 font-mono leading-relaxed bg-white p-3.5 rounded-xl border border-slate-200/80"></div>
+        </div>
+      </div>
+
+      <!-- Regulatory / Underwriting Disclaimer Banner -->
+      <footer class="bg-amber-50/80 border border-amber-200/80 rounded-2xl p-4 flex items-start gap-3 text-xs text-amber-900">
+        <svg class="w-5 h-5 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <div class="leading-relaxed">
+          <strong class="font-semibold">Important Disclaimer:</strong> Loan eligibility and sanction calculations are estimates based on entered assumptions and lender-specific policies. This app does not approve loans or replace bank underwriting rules. Interest rates, tax slabs, stamp duty charges, and FOIR/LTV norms vary across banks, NBFCs, and state regulations.
+        </div>
+      </footer>
+
+    </main>
+  </div>
+
+  <!-- Saved Scenarios Drawer (Right Slide-over) -->
+  <div id="savedDrawerBackdrop" class="fixed inset-0 bg-slate-950/50 backdrop-blur-xs z-50 hidden" onclick="closeSavedDrawer()"></div>
+  <aside id="savedDrawer" class="fixed top-0 right-0 z-50 h-screen w-full max-w-md bg-white shadow-2xl border-l border-slate-200 flex flex-col transform translate-x-full transition-transform duration-200">
+    <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+      <div>
+        <h3 class="font-bold text-slate-900 text-base">Saved Scenarios &amp; Favorites</h3>
+        <p class="text-xs text-slate-500">Stored locally in your browser</p>
+      </div>
+      <button onclick="closeSavedDrawer()" class="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-200/60">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div id="savedScenariosList" class="flex-1 overflow-y-auto p-4 space-y-3">
+      <!-- Rendered dynamically -->
+    </div>
+    <div class="p-4 border-t border-slate-200 bg-slate-50 flex justify-between items-center">
+      <button onclick="clearAllSavedScenarios()" class="text-xs text-rose-600 hover:text-rose-700 font-medium">Clear All Saved</button>
+      <button onclick="closeSavedDrawer()" class="px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-semibold">Done</button>
+    </div>
+  </aside>
+
+  <!-- Modal Backdrop (Save Scenario Prompt & Scenario Comparison Modal) -->
+  <div id="modalBackdrop" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+    
+    <!-- Save Scenario Custom Dialog (Replaces browser prompt) -->
+    <div id="saveModalBox" class="hidden bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-md w-full p-6 space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 class="text-lg font-bold text-slate-900">Save Calculation Scenario</h3>
+        <button onclick="closeModal()" class="text-slate-400 hover:text-slate-700">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-slate-600 mb-1.5">Scenario Label / Customer Reference</label>
+        <input type="text" id="scenarioNameInput" placeholder="e.g., HDFC Home Loan 85L @ 8.5%" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 outline-none" />
+      </div>
+      <div class="flex justify-end gap-2 pt-2">
+        <button onclick="closeModal()" class="px-4 py-2 rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-100">Cancel</button>
+        <button onclick="confirmSaveScenario()" class="px-4 py-2 rounded-xl text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white">Save Scenario</button>
+      </div>
+    </div>
+
+    <!-- Side-by-Side Scenario Comparison Modal -->
+    <div id="compareModalBox" class="hidden bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-5xl w-full max-h-[88vh] flex flex-col overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+        <div>
+          <h3 class="text-lg font-bold text-slate-900">Side-by-Side Scenario Comparison</h3>
+          <p class="text-xs text-slate-500">Compare saved snapshots across loans, investments, and eligibility metrics</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="clearCompareList()" class="px-3 py-1.5 rounded-lg text-xs font-medium text-rose-600 hover:bg-rose-50 border border-rose-200">Clear All</button>
+          <button onclick="closeModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+      </div>
+      <div id="compareModalContent" class="p-6 overflow-auto flex-1">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+<script>
+/**
+ * ============================================================================
+ * PD DIGITAL FINANCIAL CALCULATOR - CORE ENGINE & STATE
+ * ============================================================================
+ */
+
+// Global Chart instances registry so we destroy old charts cleanly before re-rendering
+const activeCharts = {};
+
+function destroyAllCharts() {
+  Object.keys(activeCharts).forEach(key => {
+    if (activeCharts[key]) {
+      activeCharts[key].destroy();
+      delete activeCharts[key];
+    }
+  });
+}
+
+// Indian Currency Formatting Utilities
+function formatINR(num, decimals = 0) {
+  if (num === null || num === undefined || isNaN(num) || !isFinite(num)) return '₹0';
+  const isNeg = num < 0;
+  const absVal = Math.abs(num);
+  const formatted = absVal.toLocaleString('en-IN', {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals
+  });
+  return `${isNeg ? '-' : ''}₹${formatted}`;
+}
+
+function formatLakhsCrores(num) {
+  if (num === null || num === undefined || isNaN(num) || !isFinite(num)) return '₹0';
+  const isNeg = num < 0;
+  const abs = Math.abs(num);
+  const prefix = isNeg ? '-₹' : '₹';
+  if (abs >= 10000000) {
+    return `${prefix}${(abs / 10000000).toFixed(2)} Cr`;
+  } else if (abs >= 100000) {
+    return `${prefix}${(abs / 100000).toFixed(2)} Lakhs`;
+  } else if (abs >= 1000) {
+    return `${prefix}${(abs / 1000).toFixed(2)} K`;
+  }
+  return `${prefix}${abs.toFixed(0)}`;
+}
+
+// Reusable EMI Formula: P * r * (1+r)^n / ((1+r)^n - 1)
+function calcMonthlyEMI(principal, annualRate, tenureMonths) {
+  if (principal <= 0 || tenureMonths <= 0) return 0;
+  if (annualRate <= 0) return principal / tenureMonths;
+  const r = annualRate / 12 / 100;
+  const factor = Math.pow(1 + r, tenureMonths);
+  return (principal * r * factor) / (factor - 1);
+}
+
+// Toast Notification Helper (Replaces alert)
+function showToast(message, type = 'success') {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  const colors = {
+    success: 'bg-slate-900 text-white border-emerald-500',
+    info: 'bg-blue-900 text-white border-blue-400',
+    warning: 'bg-amber-900 text-white border-amber-400'
+  };
+  toast.className = `pointer-events-auto flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-lg border-l-4 text-xs font-medium transition-all duration-300 ${colors[type] || colors.success}`;
+  toast.innerHTML = `<span>${message}</span>`;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(8px)';
+    setTimeout(() => toast.remove(), 300);
+  }, 2800);
+}
+
+/**
+ * ============================================================================
+ * CALCULATOR CATALOGUE (ALL 33 CALCULATORS ACROSS 5 CATEGORIES)
+ * ============================================================================
+ */
+const CALCULATORS = [
+  // CATEGORY A: BASIC CALCULATORS
+  {
+    id: 'standard-calc',
+    code: 'A1',
+    category: 'A. Basic Calculators',
+    shortCat: 'Basic',
+    name: 'Standard Calculator',
+    desc: 'Scientific & arithmetic calculator with keyboard support and live calculation tape.',
+    formula: 'Standard BODMAS arithmetic & scientific functions: %, √x, x², 1/x, memory & continuous tape.'
+  },
+  {
+    id: 'age-calc',
+    code: 'A2',
+    category: 'A. Basic Calculators',
+    shortCat: 'Basic',
+    name: 'Age Calculator',
+    desc: 'Calculate exact chronological age in years, months, days, and next birthday countdown.',
+    formula: 'Exact calendar difference accounting for leap years and variable month lengths (28–31 days).'
+  },
+  {
+    id: 'date-diff-calc',
+    code: 'A3',
+    category: 'A. Basic Calculators',
+    shortCat: 'Basic',
+    name: 'Date Difference Calculator',
+    desc: 'Find total days, weeks, months, years, and working business days between two dates.',
+    formula: 'Total Days = (End Date − Start Date) / 86,400,000 ms; Business Days exclude Saturdays & Sundays.'
+  },
+
+  // CATEGORY B: INVESTMENT CALCULATORS
+  {
+    id: 'sip-calc',
+    code: 'B1',
+    category: 'B. Investment Calculators',
+    shortCat: 'Investment',
+    name: 'SIP Calculator',
+    desc: 'Calculate wealth creation through Systematic Investment Plans with yearly breakdown.',
+    formula: 'FV = P × [ ((1 + i)^n − 1) / i ] × (1 + i), where P = Monthly SIP, i = r / 12, n = Months.'
+  },
+  {
+    id: 'stepup-sip-calc',
+    code: 'B2',
+    category: 'B. Investment Calculators',
+    shortCat: 'Investment',
+    name: 'Step-Up SIP Calculator',
+    desc: 'Compare regular SIP against an annual top-up SIP increasing by a fixed percentage every year.',
+    formula: 'Each year t, Monthly SIP_t = SIP_0 × (1 + stepUp%)^(t−1), compounded monthly at r/12.'
+  },
+  {
+    id: 'lumpsum-calc',
+    code: 'B3',
+    category: 'B. Investment Calculators',
+    shortCat: 'Investment',
+    name: 'Lumpsum Calculator',
+    desc: 'Estimate future value of a one-time lumpsum investment over your chosen horizon.',
+    formula: 'FV = P × (1 + r / 100)^t, where P = Initial Lumpsum, r = Annual Return %, t = Years.'
+  },
+  {
+    id: 'mf-return-calc',
+    code: 'B4',
+    category: 'B. Investment Calculators',
+    shortCat: 'Investment',
+    name: 'Mutual Fund Return Calculator',
+    desc: 'Evaluate Lumpsum or SIP mutual fund returns including Expense Ratio drag and CAGR.',
+    formula: 'Effective Return = Expected Return % − Expense Ratio %; Absolute Return = ((FV − Invested)/Invested) × 100.'
+  },
+  {
+    id: 'cagr-calc',
+    code: 'B5',
+    category: 'B. Investment Calculators',
+    shortCat: 'Investment',
+    name: 'CAGR Calculator',
+    desc: 'Compute Compound Annual Growth Rate between beginning and ending investment values.',
+    formula: 'CAGR = [ (Ending Value / Beginning Value)^(1 / Years) − 1 ] × 100.'
+  },
+  {
+    id: 'ci-calc',
+    code: 'B6',
+    category: 'B. Investment Calculators',
+    shortCat: 'Investment',
+    name: 'Compound Interest Calculator',
+    desc: 'Calculate compound interest with Monthly, Quarterly, Half-Yearly, or Annual compounding.',
+    formula: 'A = P × (1 + r / n)^(n × t), where n = compounding frequency per year (1, 2, 4, or 12).'
+  },
+  {
+    id: 'swp-calc',
+    code: 'B7',
+    category: 'B. Investment Calculators',
+    shortCat: 'Investment',
+    name: 'SWP Calculator',
+    desc: 'Systematic Withdrawal Plan: Track monthly income withdrawals and residual corpus over time.',
+    formula: 'Month Balance_m = (Balance_{m−1} − Withdrawal) × (1 + r/12) [or beginning-of-month deduction].'
+  },
+  {
+    id: 'retirement-calc',
+    code: 'B8',
+    category: 'B. Investment Calculators',
+    shortCat: 'Investment',
+    name: 'Retirement Planning Calculator',
+    desc: 'Determine inflation-adjusted retirement corpus required and monthly SIP needed today.',
+    formula: 'Expense at Retirement = Current Expense × (1 + inflation)^Yrs; Corpus = PV of Annuity over Retirement Years.'
+  },
+  {
+    id: 'goal-calc',
+    code: 'B9',
+    category: 'B. Investment Calculators',
+    shortCat: 'Investment',
+    name: 'Goal-Based Investment Calculator',
+    desc: 'Plan for child education, marriage, or home down payment with inflation adjustment.',
+    formula: 'Future Goal = Target × (1 + inflation)^t; Required SIP = Future Goal / [(((1+i)^n − 1)/i) × (1+i)].'
+  },
+
+  // CATEGORY C: LOAN CALCULATORS
+  {
+    id: 'home-loan-emi',
+    code: 'C1',
+    category: 'C. Loan Calculators',
+    shortCat: 'Loans',
+    name: 'Home Loan EMI Calculator',
+    desc: 'Calculate monthly housing loan EMI, total interest outgo, and principal-interest ratio.',
+    formula: 'EMI = [P × R × (1+R)^N] / [(1+R)^N − 1], where R = Annual Rate / 12 / 100, N = Tenure in Months.'
+  },
+  {
+    id: 'car-loan-emi',
+    code: 'C2',
+    category: 'C. Loan Calculators',
+    shortCat: 'Loans',
+    name: 'Car Loan EMI Calculator',
+    desc: 'Compute auto loan EMI based on vehicle on-road price, down payment, rate, and tenure.',
+    formula: 'Loan Principal P = Vehicle Price − Down Payment; EMI = [P × R × (1+R)^N] / [(1+R)^N − 1].'
+  },
+  {
+    id: 'gold-loan-calc',
+    code: 'C3',
+    category: 'C. Loan Calculators',
+    shortCat: 'Loans',
+    name: 'Gold Loan Calculator',
+    desc: 'Assess eligible gold loan based on weight, purity (18K/22K/24K), rate/gram, and RBI LTV %.',
+    formula: 'Gold Value = Weight × Rate/g × (Karat/24); Max Loan = Gold Value × LTV% (capped at 75% per RBI).'
+  },
+  {
+    id: 'balance-transfer-calc',
+    code: 'C4',
+    category: 'C. Loan Calculators',
+    shortCat: 'Loans',
+    name: 'Balance Transfer Calculator',
+    desc: 'Calculate EMI reduction and net interest savings when shifting a loan to a lower ROI lender.',
+    formula: 'Net Savings = (Current EMI × Remaining Months) − (New EMI × Remaining Months + Processing Fee).'
+  },
+  {
+    id: 'prepayment-calc',
+    code: 'C5',
+    category: 'C. Loan Calculators',
+    shortCat: 'Loans',
+    name: 'Loan Prepayment / Part-Payment',
+    desc: 'Measure tenure reduction and interest saved by making a lumpsum part-payment.',
+    formula: 'At prepayment month M, Principal_M = Principal_M − PartPayment; EMI stays constant, reducing remaining N.'
+  },
+  {
+    id: 'amortization-calc',
+    code: 'C6',
+    category: 'C. Loan Calculators',
+    shortCat: 'Loans',
+    name: 'Loan Amortization Schedule',
+    desc: 'Interactive Year-wise & Month-wise principal, interest, and closing balance repayment schedule.',
+    formula: 'Interest_m = Opening Balance × (r/12); Principal_m = EMI − Interest_m; Closing = Opening − Principal_m.'
+  },
+  {
+    id: 'flat-vs-reducing',
+    code: 'C7',
+    category: 'C. Loan Calculators',
+    shortCat: 'Loans',
+    name: 'Flat vs Reducing Interest Comparison',
+    desc: 'Compare flat interest rate loans against reducing balance loans and uncover true IRR.',
+    formula: 'Flat EMI = (P + P × r_flat × Years) / N; Effective Reducing Rate solved via Newton-Raphson IRR.'
+  },
+
+  // CATEGORY D: LOAN ELIGIBILITY – MULTIPLE APPLICANTS (FLAGSHIP)
+  {
+    id: 'multi-applicant-eligibility',
+    code: 'D1',
+    category: 'D. Loan Eligibility (Multi-Applicant)',
+    shortCat: 'Eligibility',
+    name: 'Multi-Applicant Loan Eligibility',
+    desc: 'Flagship underwriting engine for Single, Joint, or up to 5 Co-Applicants with FOIR & DBR.',
+    formula: 'Max Eligible EMI = (Combined Net Income × Max FOIR%) − Total Existing Obligations; Max Loan = PV(Max EMI, R, N).'
+  },
+
+  // CATEGORY E: BANKING – SANCTION & DISBURSEMENT CALCULATIONS
+  {
+    id: 'foir-calc',
+    code: 'E1',
+    category: 'E. Banking – Sanction & Disbursement',
+    shortCat: 'Banking',
+    name: 'FOIR Calculator',
+    desc: 'Fixed Obligation to Income Ratio assessment for retail & mortgage loan underwriting.',
+    formula: 'FOIR (%) = [ (Existing EMIs + Proposed EMI + Other Fixed Obligations) / Net Monthly Income ] × 100.'
+  },
+  {
+    id: 'ltv-calc',
+    code: 'E2',
+    category: 'E. Banking – Sanction & Disbursement',
+    shortCat: 'Banking',
+    name: 'LTV Calculator',
+    desc: 'Loan-to-Value ratio check against RBI/NHB regulatory housing loan slabs (75%–90%).',
+    formula: 'LTV (%) = (Requested Loan Amount / Property Market or Agreement Value) × 100.'
+  },
+  {
+    id: 'dbr-calc',
+    code: 'E3',
+    category: 'E. Banking – Sanction & Disbursement',
+    shortCat: 'Banking',
+    name: 'DBR Calculator',
+    desc: 'Debt Burden Ratio comparing total monthly debt obligations against gross monthly income.',
+    formula: 'DBR (%) = (Total Monthly Debt Payments / Gross Monthly Income) × 100.'
+  },
+  {
+    id: 'dscr-calc',
+    code: 'E4',
+    category: 'E. Banking – Sanction & Disbursement',
+    shortCat: 'Banking',
+    name: 'DSCR Calculator',
+    desc: 'Debt Service Coverage Ratio for commercial/MSME loans (Benchmark >= 1.25x).',
+    formula: 'DSCR = (Net Profit + Depreciation + Interest on Term Loans) / (Annual Principal + Interest Obligations).'
+  },
+  {
+    id: 'net-salary-calc',
+    code: 'E5',
+    category: 'E. Banking – Sanction & Disbursement',
+    shortCat: 'Banking',
+    name: 'Net Salary Calculator',
+    desc: 'Compute bank-considered Net Take-Home Pay after EPF, Professional Tax, TDS, and deductions.',
+    formula: 'Net Take-Home Salary = Gross Monthly Salary − (EPF + Professional Tax + Income Tax TDS + Other Deductions).'
+  },
+  {
+    id: 'gross-income-calc',
+    code: 'E6',
+    category: 'E. Banking – Sanction & Disbursement',
+    shortCat: 'Banking',
+    name: 'Gross Income Assessment',
+    desc: 'Bank credit appraisal of Basic, DA, HRA, Variable/Bonus (50% haircut), and Rental income.',
+    formula: 'Assessed Income = 100% Fixed Salary + (Variable/Bonus × Policy Weight%) + (Rental Income × Policy Weight%).'
+  },
+  {
+    id: 'processing-fee-calc',
+    code: 'E7',
+    category: 'E. Banking – Sanction & Disbursement',
+    shortCat: 'Banking',
+    name: 'Processing Fee & GST Calculator',
+    desc: 'Calculate bank loan processing fees, 18% GST component, and total upfront fee payable.',
+    formula: 'Processing Fee = Loan Amount × Fee%; GST = Processing Fee × 18%; Total Payable = Fee + GST.'
+  },
+  {
+    id: 'net-disbursement-calc',
+    code: 'E8',
+    category: 'E. Banking – Sanction & Disbursement',
+    shortCat: 'Banking',
+    name: 'Net Disbursement Calculator',
+    desc: 'Determine actual net bank disbursement after deducting fees, insurance, legal, and CERSAI.',
+    formula: 'Net Disbursement = Sanctioned Loan − (Processing Fee w/ GST + Legal/Tech + Insurance + CERSAI/MODT).'
+  },
+  {
+    id: 'stamp-duty-calc',
+    code: 'E9',
+    category: 'E. Banking – Sanction & Disbursement',
+    shortCat: 'Banking',
+    name: 'Stamp Duty & Registration Calculator',
+    desc: 'Estimate state-wise property stamp duty and registration charges for mortgage documentation.',
+    formula: 'Stamp Duty = Property Value × Stamp%; Registration Fee = Property Value × Reg% (or state cap).'
+  },
+  {
+    id: 'part-disbursement-calc',
+    code: 'E10',
+    category: 'E. Banking – Sanction & Disbursement',
+    shortCat: 'Banking',
+    name: 'Part Disbursement & Pre-EMI Calculator',
+    desc: 'Stage-wise construction-linked disbursement schedule & Pre-EMI simple interest calculation.',
+    formula: 'Monthly Pre-EMI = Cumulative Disbursed Principal × (Annual Interest Rate / 12 / 100).'
+  },
+  {
+    id: 'lender-comparison-calc',
+    code: 'E11',
+    category: 'E. Banking – Sanction & Disbursement',
+    shortCat: 'Banking',
+    name: 'Interest Rate & Lender Offer Comparison',
+    desc: 'Compare up to 3 bank/NBFC loan offers side-by-side on EMI, total interest, and total cost.',
+    formula: 'Total Cost = (Monthly EMI × Tenure Months) + Upfront Processing Fee (incl. GST).'
+  },
+  {
+    id: 'loan-balance-calc',
+    code: 'E12',
+    category: 'E. Banking – Sanction & Disbursement',
+    shortCat: 'Banking',
+    name: 'Loan Balance (Outstanding Principal)',
+    desc: 'Calculate exact unpaid principal outstanding and interest paid after k EMIs.',
+    formula: 'Outstanding Balance B_k = P × [ (1+R)^N − (1+R)^k ] / [ (1+R)^N − 1 ].'
+  },
+  {
+    id: 'takeover-topup-calc',
+    code: 'E13',
+    category: 'E. Banking – Sanction & Disbursement',
+    shortCat: 'Banking',
+    name: 'Takeover / BT + Top-Up Calculation',
+    desc: 'Evaluate loan takeover with additional Top-Up funding, net cash-in-hand, and combined EMI.',
+    formula: 'Combined Loan = Existing Principal + Top-Up; Net Cash-in-Hand = Top-Up − New Processing & Legal Charges.'
+  }
+];
+
+/**
+ * ============================================================================
+ * APPLICATION STATE & LOCALSTORAGE PERSISTENCE
+ * ============================================================================
+ */
+let currentCalcId = 'multi-applicant-eligibility'; // Default active calculator (Flagship) or can start with any
+const STORAGE_SAVED_KEY = 'pd_fin_saved_scenarios_v1';
+const STORAGE_COMPARE_KEY = 'pd_fin_compare_scenarios_v1';
+
+let savedScenarios = JSON.parse(localStorage.getItem(STORAGE_SAVED_KEY) || '[]');
+let compareScenarios = JSON.parse(localStorage.getItem(STORAGE_COMPARE_KEY) || '[]');
+let latestSnapshot = { title: '', summaryMetrics: {} };
+
+function persistStorage() {
+  localStorage.setItem(STORAGE_SAVED_KEY, JSON.stringify(savedScenarios));
+  localStorage.setItem(STORAGE_COMPARE_KEY, JSON.stringify(compareScenarios));
+  updateBadges();
+}
+
+function updateBadges() {
+  document.getElementById('sidebarSavedCount').textContent = savedScenarios.length;
+  document.getElementById('headerSavedBadge').textContent = savedScenarios.length;
+  document.getElementById('headerCompareBadge').textContent = compareScenarios.length;
+}
+
+/**
+ * ============================================================================
+ * SIDEBAR NAVIGATION & LIVE SEARCH
+ * ============================================================================
+ */
+function renderSidebar(filterText = '') {
+  const nav = document.getElementById('sidebarNav');
+  const query = filterText.trim().toLowerCase();
+
+  // Group calculators by category
+  const categories = {};
+  CALCULATORS.forEach(calc => {
+    if (!query || calc.name.toLowerCase().includes(query) || calc.category.toLowerCase().includes(query) || calc.desc.toLowerCase().includes(query)) {
+      if (!categories[calc.category]) categories[calc.category] = [];
+      categories[calc.category].push(calc);
+    }
+  });
+
+  if (Object.keys(categories).length === 0) {
+    nav.innerHTML = `<div class="p-4 text-center text-xs text-slate-400">No calculators match "${filterText}"</div>`;
+    return;
+  }
+
+  let html = '';
+  Object.entries(categories).forEach(([catName, items]) => {
+    html += `
+      <div>
+        <div class="px-2.5 mb-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between">
+          <span>${catName}</span>
+          <span class="text-slate-600">${items.length}</span>
+        </div>
+        <div class="space-y-0.5">
+          ${items.map(item => {
+            const isActive = item.id === currentCalcId;
+            return `
+              <button 
+                onclick="selectCalculator('${item.id}')"
+                class="w-full text-left px-3 py-2 rounded-xl text-xs font-medium flex items-center justify-between gap-2 transition-all ${
+                  isActive 
+                    ? 'bg-blue-600 text-white shadow-md shadow-blue-950/50 font-semibold' 
+                    : 'text-slate-300 hover:bg-navy-800 hover:text-white'
+                }"
+              >
+                <span class="truncate">${item.name}</span>
+                ${item.id === 'multi-applicant-eligibility' ? `<span class="shrink-0 px-1.5 py-0.5 text-[9px] rounded bg-emerald-500/20 text-emerald-300 font-bold">PRO</span>` : ''}
+              </button>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    `;
+  });
+
+  nav.innerHTML = html;
+}
+
+// Search input listeners
+const searchInput = document.getElementById('globalSearchInput');
+const searchDropdown = document.getElementById('searchDropdown');
+const clearSearchBtn = document.getElementById('clearSearchBtn');
+
+searchInput.addEventListener('input', (e) => {
+  const val = e.target.value;
+  clearSearchBtn.classList.toggle('hidden', !val);
+  renderSidebar(val);
+
+  if (!val.trim()) {
+    searchDropdown.classList.add('hidden');
+    return;
+  }
+
+  const q = val.trim().toLowerCase();
+  const matches = CALCULATORS.filter(c =>
+    c.name.toLowerCase().includes(q) ||
+    c.category.toLowerCase().includes(q) ||
+    c.desc.toLowerCase().includes(q)
+  );
+
+  if (matches.length === 0) {
+    searchDropdown.innerHTML = `<div class="p-3.5 text-xs text-slate-500 text-center">No calculators found for "${val}"</div>`;
+  } else {
+    searchDropdown.innerHTML = matches.map(m => `
+      <button onclick="selectCalculator('${m.id}'); clearGlobalSearch();" class="w-full text-left px-4 py-2.5 hover:bg-blue-50/70 transition flex items-center justify-between gap-3">
+        <div>
+          <p class="text-xs font-semibold text-slate-900">${m.name}</p>
+          <p class="text-[11px] text-slate-500 truncate max-w-md">${m.desc}</p>
+        </div>
+        <span class="shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">${m.shortCat}</span>
+      </button>
+    `).join('');
+  }
+  searchDropdown.classList.remove('hidden');
+});
+
+document.addEventListener('click', (e) => {
+  if (!searchInput.contains(e.target) && !searchDropdown.contains(e.target)) {
+    searchDropdown.classList.add('hidden');
+  }
+});
+
+function clearGlobalSearch() {
+  searchInput.value = '';
+  clearSearchBtn.classList.add('hidden');
+  searchDropdown.classList.add('hidden');
+  renderSidebar('');
+}
+
+function toggleMobileSidebar(open) {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('mobileOverlay');
+  if (open) {
+    sidebar.classList.remove('-translate-x-full');
+    overlay.classList.remove('hidden');
+  } else {
+    sidebar.classList.add('-translate-x-full');
+    overlay.classList.add('hidden');
+  }
+}
+
+/**
+ * ============================================================================
+ * REUSABLE UI COMPONENT BUILDERS (SLIDER + INPUT + LAKHS/CRORES BADGE)
+ * ============================================================================
+ */
+function buildCurrencyControl({ id, label, value, min, max, step, unit = '₹', showWords = true }) {
+  return `
+    <div class="space-y-1.5">
+      <div class="flex items-center justify-between gap-2">
+        <label for="${id}" class="text-xs font-semibold text-slate-700">${label}</label>
+        <div class="relative flex items-center">
+          ${unit === '₹' ? '<span class="absolute left-3 text-xs font-bold text-slate-400">₹</span>' : ''}
+          <input 
+            type="number" 
+            id="${id}" 
+            value="${value}" 
+            min="${min}" 
+            max="${max}" 
+            step="${step}"
+            class="w-36 sm:w-40 ${unit === '₹' ? 'pl-7 pr-3' : 'pl-3 pr-7'} py-1.5 text-right text-sm font-bold text-slate-900 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:border-blue-600 focus:ring-2 focus:ring-blue-600/15 outline-none tabular-nums"
+          />
+          ${unit !== '₹' ? `<span class="absolute right-2.5 text-xs font-semibold text-slate-400">${unit}</span>` : ''}
+        </div>
+      </div>
+      <input type="range" id="${id}_range" value="${value}" min="${min}" max="${max}" step="${step}" />
+      <div class="flex items-center justify-between text-[11px] text-slate-400">
+        <span>${unit === '₹' ? formatLakhsCrores(min) : min + unit}</span>
+        ${showWords && unit === '₹' ? `<span id="${id}_words" class="font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">${formatLakhsCrores(value)}</span>` : ''}
+        <span>${unit === '₹' ? formatLakhsCrores(max) : max + unit}</span>
+      </div>
+    </div>
+  `;
+}
+
+// Sync slider and number input cleanly
+function bindSyncedInput(id, onChangeCallback, isCurrency = true) {
+  const numEl = document.getElementById(id);
+  const rangeEl = document.getElementById(`${id}_range`);
+  const wordsEl = document.getElementById(`${id}_words`);
+
+  if (!numEl || !rangeEl) return;
+
+  const updateWords = (val) => {
+    if (wordsEl && isCurrency) {
+      wordsEl.textContent = formatLakhsCrores(parseFloat(val) || 0);
+    }
+  };
+
+  numEl.addEventListener('input', () => {
+    const val = parseFloat(numEl.value);
+    if (!isNaN(val)) {
+      rangeEl.value = Math.min(Math.max(val, parseFloat(rangeEl.min)), parseFloat(rangeEl.max));
+      updateWords(val);
+      onChangeCallback();
+    }
+  });
+
+  rangeEl.addEventListener('input', () => {
+    numEl.value = rangeEl.value;
+    updateWords(rangeEl.value);
+    onChangeCallback();
+  });
+}
+
+function buildResultCard(label, value, subBadge = '', accent = 'blue') {
+  const styles = {
+    blue: 'bg-blue-50/70 border-blue-200/80 text-blue-950',
+    emerald: 'bg-emerald-50/80 border-emerald-200/80 text-emerald-950',
+    slate: 'bg-slate-50 border-slate-200/90 text-slate-900',
+    amber: 'bg-amber-50/80 border-amber-200/80 text-amber-950',
+    rose: 'bg-rose-50/80 border-rose-200/80 text-rose-950'
+  };
+  return `
+    <div class="p-4 rounded-2xl border ${styles[accent] || styles.slate} flex flex-col justify-between">
+      <span class="text-xs font-medium text-slate-500">${label}</span>
+      <div class="mt-1.5 flex items-baseline justify-between gap-2 flex-wrap">
+        <span class="text-lg sm:text-xl font-extrabold tabular-nums tracking-tight">${value}</span>
+        ${subBadge ? `<span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-white/80 text-slate-700 border border-slate-200/60">${subBadge}</span>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * ============================================================================
+ * CALCULATOR SELECTION & DISPATCHER
+ * ============================================================================
+ */
+function selectCalculator(id) {
+  currentCalcId = id;
+  destroyAllCharts();
+  toggleMobileSidebar(false);
+  renderSidebar(searchInput.value);
+
+  const meta = CALCULATORS.find(c => c.id === id) || CALCULATORS[0];
+  document.getElementById('activeCategoryBadge').textContent = meta.category;
+  document.getElementById('activeCalcCode').textContent = `#${meta.code}`;
+  document.getElementById('activeCalcTitle').textContent = meta.name;
+  document.getElementById('activeCalcDesc').textContent = meta.desc;
+  document.getElementById('formulaText').textContent = meta.formula;
+
+  const container = document.getElementById('calculatorContainer');
+  container.innerHTML = '';
+
+  // Route to specific calculator module
+  const handlers = {
+    'standard-calc': renderStandardCalculator,
+    'age-calc': renderAgeCalculator,
+    'date-diff-calc': renderDateDiffCalculator,
+    'sip-calc': () => renderSIPCalculator(false),
+    'stepup-sip-calc': () => renderSIPCalculator(true),
+    'lumpsum-calc': renderLumpsumCalculator,
+    'mf-return-calc': renderMFReturnCalculator,
+    'cagr-calc': renderCAGRCalculator,
+    'ci-calc': renderCompoundInterestCalculator,
+    'swp-calc': renderSWPCalculator,
+    'retirement-calc': renderRetirementCalculator,
+    'goal-calc': renderGoalCalculator,
+    'home-loan-emi': () => renderLoanEMICalculator('home'),
+    'car-loan-emi': () => renderLoanEMICalculator('car'),
+    'gold-loan-calc': renderGoldLoanCalculator,
+    'balance-transfer-calc': renderBalanceTransferCalculator,
+    'prepayment-calc': renderPrepaymentCalculator,
+    'amortization-calc': renderAmortizationCalculator,
+    'flat-vs-reducing': renderFlatVsReducingCalculator,
+    'multi-applicant-eligibility': renderMultiApplicantEligibility,
+    'foir-calc': renderFOIRCalculator,
+    'ltv-calc': renderLTVCalculator,
+    'dbr-calc': renderDBRCalculator,
+    'dscr-calc': renderDSCRCalculator,
+    'net-salary-calc': renderNetSalaryCalculator,
+    'gross-income-calc': renderGrossIncomeCalculator,
+    'processing-fee-calc': renderProcessingFeeCalculator,
+    'net-disbursement-calc': renderNetDisbursementCalculator,
+    'stamp-duty-calc': renderStampDutyCalculator,
+    'part-disbursement-calc': renderPartDisbursementCalculator,
+    'lender-comparison-calc': renderLenderComparisonCalculator,
+    'loan-balance-calc': renderLoanBalanceCalculator,
+    'takeover-topup-calc': renderTakeoverTopupCalculator
+  };
+
+  if (handlers[id]) {
+    handlers[id](container);
+  }
+}
+
+function resetCurrentCalculator() {
+  selectCalculator(currentCalcId);
+  showToast('Inputs reset to default values', 'info');
+}
+
+function toggleFormulaBox() {
+  const content = document.getElementById('formulaContent');
+  const chevron = document.getElementById('formulaChevron');
+  content.classList.toggle('hidden');
+  chevron.classList.toggle('rotate-180');
+}
+
+function printReport() {
+  document.getElementById('printReportDate').textContent = 'Generated on: ' + new Date().toLocaleString('en-IN');
+  window.print();
+}
+
+/**
+ * ============================================================================
+ * A1. STANDARD CALCULATOR (WITH KEYBOARD & TAPE HISTORY)
+ * ============================================================================
+ */
+let stdCalcState = { expr: '', display: '0', history: [] };
+
+function renderStandardCalculator(container) {
+  container.innerHTML = `
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <!-- Keypad Card -->
+      <div class="lg:col-span-7 bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/90 shadow-xs">
+        <div class="bg-slate-900 rounded-2xl p-4 sm:p-5 mb-4 text-right shadow-inner">
+          <div id="stdExpr" class="text-xs sm:text-sm text-slate-400 font-mono min-h-[20px] truncate">${stdCalcState.expr || 'Ready'}</div>
+          <div id="stdDisplay" class="text-2xl sm:text-4xl font-bold text-white font-mono tabular-nums mt-1 overflow-x-auto">${stdCalcState.display}</div>
+        </div>
+
+        <div class="grid grid-cols-4 gap-2.5">
+          ${[
+            { label: 'AC', fn: "stdAction('AC')", cls: 'bg-rose-50 text-rose-700 hover:bg-rose-100 font-bold' },
+            { label: '⌫', fn: "stdAction('BACK')", cls: 'bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold' },
+            { label: '%', fn: "stdAction('%')", cls: 'bg-blue-50 text-blue-700 hover:bg-blue-100 font-bold' },
+            { label: '÷', fn: "stdInput('/')", cls: 'bg-blue-600 text-white hover:bg-blue-700 font-bold text-lg' },
+
+            { label: '√x', fn: "stdAction('SQRT')", cls: 'bg-slate-100 text-slate-700 hover:bg-slate-200 font-semibold' },
+            { label: 'x²', fn: "stdAction('SQR')", cls: 'bg-slate-100 text-slate-700 hover:bg-slate-200 font-semibold' },
+            { label: '1/x', fn: "stdAction('INV')", cls: 'bg-slate-100 text-slate-700 hover:bg-slate-200 font-semibold' },
+            { label: '×', fn: "stdInput('*')", cls: 'bg-blue-600 text-white hover:bg-blue-700 font-bold text-lg' },
+
+            { label: '7', fn: "stdInput('7')", cls: 'bg-white border border-slate-200 text-slate-900 hover:bg-slate-50 font-bold text-lg' },
+            { label: '8', fn: "stdInput('8')", cls: 'bg-white border border-slate-200 text-slate-900 hover:bg-slate-50 font-bold text-lg' },
+            { label: '9', fn: "stdInput('9')", cls: 'bg-white border border-slate-200 text-slate-900 hover:bg-slate-50 font-bold text-lg' },
+            { label: '−', fn: "stdInput('-')", cls: 'bg-blue-600 text-white hover:bg-blue-700 font-bold text-lg' },
+
+            { label: '4', fn: "stdInput('4')", cls: 'bg-white border border-slate-200 text-slate-900 hover:bg-slate-50 font-bold text-lg' },
+            { label: '5', fn: "stdInput('5')", cls: 'bg-white border border-slate-200 text-slate-900 hover:bg-slate-50 font-bold text-lg' },
+            { label: '6', fn: "stdInput('6')", cls: 'bg-white border border-slate-200 text-slate-900 hover:bg-slate-50 font-bold text-lg' },
+            { label: '+', fn: "stdInput('+')", cls: 'bg-blue-600 text-white hover:bg-blue-700 font-bold text-lg' },
+
+            { label: '1', fn: "stdInput('1')", cls: 'bg-white border border-slate-200 text-slate-900 hover:bg-slate-50 font-bold text-lg' },
+            { label: '2', fn: "stdInput('2')", cls: 'bg-white border border-slate-200 text-slate-900 hover:bg-slate-50 font-bold text-lg' },
+            { label: '3', fn: "stdInput('3')", cls: 'bg-white border border-slate-200 text-slate-900 hover:bg-slate-50 font-bold text-lg' },
+            { label: '=', fn: "stdAction('EVAL')", cls: 'row-span-2 bg-emerald-600 text-white hover:bg-emerald-700 font-bold text-xl shadow-sm' },
+
+            { label: '00', fn: "stdInput('00')", cls: 'bg-white border border-slate-200 text-slate-900 hover:bg-slate-50 font-bold text-base' },
+            { label: '0', fn: "stdInput('0')", cls: 'bg-white border border-slate-200 text-slate-900 hover:bg-slate-50 font-bold text-lg' },
+            { label: '.', fn: "stdInput('.')", cls: 'bg-white border border-slate-200 text-slate-900 hover:bg-slate-50 font-bold text-lg' }
+          ].map(btn => `
+            <button onclick="${btn.fn}" class="py-3.5 rounded-xl transition active:scale-95 tabular-nums ${btn.cls}">${btn.label}</button>
+          `).join('')}
+        </div>
+      </div>
+
+      <!-- Tape History -->
+      <div class="lg:col-span-5 bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+          <h3 class="text-sm font-bold text-slate-800">Calculation Tape History</h3>
+          <button onclick="stdCalcState.history=[]; updateStdUI();" class="text-xs text-rose-600 hover:underline font-medium">Clear Tape</button>
+        </div>
+        <div id="stdHistoryList" class="flex-1 overflow-y-auto max-h-80 py-3 space-y-2 text-xs font-mono">
+          <p class="text-slate-400 text-center py-8">Perform calculations to see audit tape</p>
+        </div>
+        <div class="pt-3 border-t border-slate-100 text-[11px] text-slate-500">
+          Tip: You can use your physical keyboard numbers, +, -, *, /, Enter, and Backspace.
+        </div>
+      </div>
+    </div>
+  `;
+  updateStdUI();
+}
+
+function stdInput(ch) {
+  if (stdCalcState.display === 'Error') stdCalcState.display = '0';
+  if (stdCalcState.display === '0' && !['.', '+', '-', '*', '/'].includes(ch)) {
+    stdCalcState.display = ch === '00' ? '0' : ch;
+  } else {
+    stdCalcState.display += ch;
+  }
+  updateStdUI();
+}
+
+function stdAction(type) {
+  try {
+    if (type === 'AC') {
+      stdCalcState.display = '0';
+      stdCalcState.expr = '';
+    } else if (type === 'BACK') {
+      stdCalcState.display = stdCalcState.display.length > 1 ? stdCalcState.display.slice(0, -1) : '0';
+    } else if (type === 'SQRT') {
+      const val = parseFloat(evalSafeMath(stdCalcState.display));
+      if (val < 0) throw new Error('Negative');
+      const res = Number(Math.sqrt(val).toFixed(8));
+      stdCalcState.history.unshift({ q: `√(${val})`, a: res });
+      stdCalcState.expr = `√(${val})`;
+      stdCalcState.display = String(res);
+    } else if (type === 'SQR') {
+      const val = parseFloat(evalSafeMath(stdCalcState.display));
+      const res = Number((val * val).toFixed(8));
+      stdCalcState.history.unshift({ q: `(${val})²`, a: res });
+      stdCalcState.expr = `(${val})²`;
+      stdCalcState.display = String(res);
+    } else if (type === 'INV') {
+      const val = parseFloat(evalSafeMath(stdCalcState.display));
+      if (val === 0) throw new Error('Zero');
+      const res = Number((1 / val).toFixed(8));
+      stdCalcState.history.unshift({ q: `1/(${val})`, a: res });
+      stdCalcState.expr = `1/(${val})`;
+      stdCalcState.display = String(res);
+    } else if (type === '%') {
+      const val = parseFloat(evalSafeMath(stdCalcState.display));
+      const res = Number((val / 100).toFixed(8));
+      stdCalcState.display = String(res);
+    } else if (type === 'EVAL') {
+      const raw = stdCalcState.display;
+      const res = evalSafeMath(raw);
+      stdCalcState.history.unshift({ q: raw, a: res });
+      stdCalcState.expr = `${raw} =`;
+      stdCalcState.display = String(res);
+      latestSnapshot = {
+        title: 'Standard Calculation',
+        summaryMetrics: { 'Expression': raw, 'Result': formatINR(res, 2) }
+      };
+    }
+  } catch (e) {
+    stdCalcState.display = 'Error';
+  }
+  updateStdUI();
+}
+
+function evalSafeMath(expr) {
+  const sanitized = expr.replace(/[^0-9+\-*/.()]/g, '');
+  if (!sanitized) return 0;
+  const result = Function(`"use strict"; return (${sanitized})`)();
+  if (!isFinite(result)) throw new Error('Invalid');
+  return Number(result.toFixed(8));
+}
+
+function updateStdUI() {
+  const disp = document.getElementById('stdDisplay');
+  const expr = document.getElementById('stdExpr');
+  const hist = document.getElementById('stdHistoryList');
+  if (!disp) return;
+  disp.textContent = stdCalcState.display;
+  expr.textContent = stdCalcState.expr || 'Ready';
+  if (stdCalcState.history.length === 0) {
+    hist.innerHTML = `<p class="text-slate-400 text-center py-8">Perform calculations to see audit tape</p>`;
+  } else {
+    hist.innerHTML = stdCalcState.history.slice(0, 20).map(item => `
+      <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200/70 flex items-center justify-between">
+        <span class="text-slate-500">${item.q}</span>
+        <span class="font-bold text-slate-900">= ${item.a.toLocaleString('en-IN')}</span>
+      </div>
+    `).join('');
+  }
+}
+
+// Physical keyboard support when Standard Calculator is open
+document.addEventListener('keydown', (e) => {
+  if (currentCalcId !== 'standard-calc') return;
+  if (document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+  if (/^[0-9+\-*/.]$/.test(e.key)) {
+    e.preventDefault();
+    stdInput(e.key);
+  } else if (e.key === 'Enter' || e.key === '=') {
+    e.preventDefault();
+    stdAction('EVAL');
+  } else if (e.key === 'Backspace') {
+    e.preventDefault();
+    stdAction('BACK');
+  } else if (e.key === 'Escape') {
+    stdAction('AC');
+  }
+});
+
+/**
+ * ============================================================================
+ * A2. AGE CALCULATOR
+ * ============================================================================
+ */
+function renderAgeCalculator(container) {
+  const todayStr = new Date().toISOString().split('T')[0];
+  container.innerHTML = `
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div class="lg:col-span-5 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1.5">Date of Birth</label>
+          <input type="date" id="ageDob" value="1992-08-15" max="${todayStr}" class="w-full px-3.5 py-2.5 text-sm font-semibold border border-slate-300 rounded-xl focus:border-blue-600 outline-none" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1.5">Age at the Date of</label>
+          <input type="date" id="ageTarget" value="${todayStr}" class="w-full px-3.5 py-2.5 text-sm font-semibold border border-slate-300 rounded-xl focus:border-blue-600 outline-none" />
+        </div>
+        <div class="p-3.5 rounded-xl bg-blue-50/70 border border-blue-100 text-xs text-blue-900">
+          <strong>Bank Eligibility Note:</strong> Most banks require applicants to be at least 21 years at loan sanction and max 60–70 years at loan maturity.
+        </div>
+      </div>
+
+      <div class="lg:col-span-7 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-5" id="ageResultBox">
+      </div>
+    </div>
+  `;
+
+  const calc = () => {
+    const dob = new Date(document.getElementById('ageDob').value);
+    const target = new Date(document.getElementById('ageTarget').value);
+    const box = document.getElementById('ageResultBox');
+
+    if (isNaN(dob) || isNaN(target) || target < dob) {
+      box.innerHTML = `<div class="p-4 rounded-xl bg-rose-50 text-rose-700 text-sm font-medium">Please select a valid target date on or after the Date of Birth.</div>`;
+      return;
+    }
+
+    let years = target.getFullYear() - dob.getFullYear();
+    let months = target.getMonth() - dob.getMonth();
+    let days = target.getDate() - dob.getDate();
+
+    if (days < 0) {
+      months--;
+      const prevMonthDays = new Date(target.getFullYear(), target.getMonth(), 0).getDate();
+      days += prevMonthDays;
+    }
+    if (months < 0) {
+      years--;
+      months += 12;
+    }
+
+    const totalDays = Math.floor((target - dob) / (1000 * 60 * 60 * 24));
+    const totalWeeks = Math.floor(totalDays / 7);
+    const totalMonths = years * 12 + months;
+
+    // Next Birthday
+    let nextBday = new Date(target.getFullYear(), dob.getMonth(), dob.getDate());
+    if (nextBday < target) nextBday.setFullYear(target.getFullYear() + 1);
+    const daysToBday = Math.ceil((nextBday - target) / (1000 * 60 * 60 * 24));
+
+    const maxRetire60 = Math.max(0, 60 - years);
+    const maxRetire70 = Math.max(0, 70 - years);
+
+    box.innerHTML = `
+      <div class="p-5 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
+        <div class="text-xs uppercase tracking-wider text-blue-100 font-semibold">Exact Chronological Age</div>
+        <div class="text-2xl sm:text-3xl font-extrabold mt-1 tabular-nums">${years} Years, ${months} Months, ${days} Days</div>
+        <div class="text-xs text-blue-100 mt-2">Next Birthday in <strong class="text-white">${daysToBday} days</strong> (${nextBday.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })})</div>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        ${buildResultCard('Total Months', totalMonths.toLocaleString('en-IN'), 'Months', 'slate')}
+        ${buildResultCard('Total Weeks', totalWeeks.toLocaleString('en-IN'), 'Weeks', 'slate')}
+        ${buildResultCard('Total Days', totalDays.toLocaleString('en-IN'), 'Days', 'emerald')}
+      </div>
+
+      <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/80 grid grid-cols-2 gap-4 text-xs">
+        <div>
+          <span class="text-slate-500">Max Tenure (Salaried up to 60 yrs):</span>
+          <p class="font-bold text-slate-900 text-sm mt-0.5">${maxRetire60} Years (${maxRetire60 * 12} Months)</p>
+        </div>
+        <div>
+          <span class="text-slate-500">Max Tenure (Self-Employed up to 70 yrs):</span>
+          <p class="font-bold text-slate-900 text-sm mt-0.5">${maxRetire70} Years (${maxRetire70 * 12} Months)</p>
+        </div>
+      </div>
+    `;
+
+    latestSnapshot = {
+      title: 'Age Assessment',
+      summaryMetrics: {
+        'Exact Age': `${years}Y ${months}M ${days}D`,
+        'Total Days': totalDays.toLocaleString('en-IN'),
+        'Max Tenure (60Y)': `${maxRetire60} Yrs`
+      }
+    };
+  };
+
+  document.getElementById('ageDob').addEventListener('change', calc);
+  document.getElementById('ageTarget').addEventListener('change', calc);
+  calc();
+}
+
+/**
+ * ============================================================================
+ * A3. DATE DIFFERENCE CALCULATOR
+ * ============================================================================
+ */
+function renderDateDiffCalculator(container) {
+  const today = new Date();
+  const future = new Date(today);
+  future.setDate(today.getDate() + 180);
+
+  container.innerHTML = `
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div class="lg:col-span-5 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1.5">Start Date</label>
+          <input type="date" id="ddStart" value="${today.toISOString().split('T')[0]}" class="w-full px-3.5 py-2.5 text-sm font-semibold border border-slate-300 rounded-xl focus:border-blue-600 outline-none" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1.5">End Date</label>
+          <input type="date" id="ddEnd" value="${future.toISOString().split('T')[0]}" class="w-full px-3.5 py-2.5 text-sm font-semibold border border-slate-300 rounded-xl focus:border-blue-600 outline-none" />
+        </div>
+        <label class="flex items-center gap-2 text-xs font-medium text-slate-700 pt-1 cursor-pointer">
+          <input type="checkbox" id="ddIncludeEnd" class="rounded text-blue-600 focus:ring-blue-500" />
+          Include end date (+1 day)
+        </label>
+      </div>
+
+      <div class="lg:col-span-7 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-4" id="ddResultBox"></div>
+    </div>
+  `;
+
+  const calc = () => {
+    const s = new Date(document.getElementById('ddStart').value);
+    const e = new Date(document.getElementById('ddEnd').value);
+    const inc = document.getElementById('ddIncludeEnd').checked;
+    const box = document.getElementById('ddResultBox');
+
+    if (isNaN(s) || isNaN(e)) return;
+    const start = s <= e ? s : e;
+    const end = s <= e ? e : s;
+
+    let totalDays = Math.round((end - start) / (1000 * 60 * 60 * 24)) + (inc ? 1 : 0);
+    let businessDays = 0;
+    let cur = new Date(start);
+    const limit = new Date(end);
+    if (inc) limit.setDate(limit.getDate() + 1);
+    while (cur < limit) {
+      const day = cur.getDay();
+      if (day !== 0 && day !== 6) businessDays++;
+      cur.setDate(cur.getDate() + 1);
+    }
+
+    const weeks = (totalDays / 7).toFixed(1);
+    const months = (totalDays / 30.4375).toFixed(1);
+    const years = (totalDays / 365.25).toFixed(2);
+
+    box.innerHTML = `
+      <div class="grid grid-cols-2 gap-3.5">
+        ${buildResultCard('Total Calendar Days', totalDays.toLocaleString('en-IN'), 'Days', 'blue')}
+        ${buildResultCard('Working Business Days', businessDays.toLocaleString('en-IN'), 'Mon–Fri', 'emerald')}
+        ${buildResultCard('Total Weeks', weeks, 'Weeks', 'slate')}
+        ${buildResultCard('Approx. Months / Years', `${months} M / ${years} Y`, '', 'slate')}
+      </div>
+    `;
+
+    latestSnapshot = {
+      title: 'Date Difference',
+      summaryMetrics: {
+        'Calendar Days': `${totalDays} Days`,
+        'Business Days': `${businessDays} Days`,
+        'Duration (Years)': `${years} Yrs`
+      }
+    };
+  };
+
+  ['ddStart', 'ddEnd', 'ddIncludeEnd'].forEach(id => document.getElementById(id).addEventListener('change', calc));
+  calc();
+}
+
+/**
+ * ============================================================================
+ * B1 & B2. SIP & STEP-UP SIP CALCULATOR
+ * ============================================================================
+ */
+function renderSIPCalculator(isStepUp = false) {
+  const container = document.getElementById('calculatorContainer');
+  container.innerHTML = `
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div class="lg:col-span-5 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-5">
+        ${buildCurrencyControl({ id: 'sipMonthly', label: 'Monthly SIP Amount', value: 15000, min: 500, max: 500000, step: 500, unit: '₹' })}
+        ${isStepUp ? buildCurrencyControl({ id: 'sipStepUp', label: 'Annual Step-Up %', value: 10, min: 1, max: 50, step: 1, unit: '%', showWords: false }) : ''}
+        ${buildCurrencyControl({ id: 'sipRate', label: 'Expected Annual Return (%)', value: 12, min: 1, max: 30, step: 0.5, unit: '%', showWords: false })}
+        ${buildCurrencyControl({ id: 'sipYears', label: 'Investment Tenure (Years)', value: 15, min: 1, max: 40, step: 1, unit: ' Yrs', showWords: false })}
+      </div>
+
+      <div class="lg:col-span-7 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-5">
+        <div id="sipCards" class="grid grid-cols-1 sm:grid-cols-3 gap-3.5"></div>
+        <div class="h-64 relative">
+          <canvas id="sipChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Yearly Growth Schedule -->
+    <div class="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
+      <div class="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between">
+        <h3 class="text-sm font-bold text-slate-800">Year-by-Year Wealth Projection</h3>
+        <span class="text-xs text-slate-500">Compounded Monthly</span>
+      </div>
+      <div class="overflow-x-auto max-h-80">
+        <table class="w-full text-left text-xs tabular-nums">
+          <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200 sticky top-0">
+            <tr>
+              <th class="px-4 py-3">Year</th>
+              <th class="px-4 py-3">Monthly SIP</th>
+              <th class="px-4 py-3">Total Invested</th>
+              <th class="px-4 py-3">Est. Wealth Gain</th>
+              <th class="px-4 py-3 text-right">Maturity Value</th>
+            </tr>
+          </thead>
+          <tbody id="sipTableBody" class="divide-y divide-slate-100"></tbody>
+        </table>
+      </div>
+    </div>
+  `;
+
+  const update = () => {
+    const monthly = parseFloat(document.getElementById('sipMonthly').value) || 0;
+    const stepUp = isStepUp ? (parseFloat(document.getElementById('sipStepUp').value) || 0) : 0;
+    const rate = parseFloat(document.getElementById('sipRate').value) || 0;
+    const years = parseInt(document.getElementById('sipYears').value) || 1;
+
+    const r = rate / 12 / 100;
+    let totalInvested = 0;
+    let balance = 0;
+    let regBalance = 0;
+    let curMonthly = monthly;
+
+    const labels = [];
+    const investedSeries = [];
+    const balanceSeries = [];
+    const regSeries = [];
+    let rowsHtml = '';
+
+    for (let y = 1; y <= years; y++) {
+      for (let m = 1; m <= 12; m++) {
+        totalInvested += curMonthly;
+        balance = (balance + curMonthly) * (1 + r);
+        regBalance = (regBalance + monthly) * (1 + r);
+      }
+      labels.push(`Yr ${y}`);
+      investedSeries.push(Math.round(totalInvested));
+      balanceSeries.push(Math.round(balance));
+      regSeries.push(Math.round(regBalance));
+
+      rowsHtml += `
+        <tr class="hover:bg-slate-50">
+          <td class="px-4 py-2.5 font-semibold text-slate-800">Year ${y}</td>
+          <td class="px-4 py-2.5 text-slate-600">${formatINR(curMonthly)}</td>
+          <td class="px-4 py-2.5 text-slate-700">${formatINR(totalInvested)}</td>
+          <td class="px-4 py-2.5 text-emerald-600 font-medium">+${formatINR(balance - totalInvested)}</td>
+          <td class="px-4 py-2.5 text-right font-bold text-slate-900">${formatINR(balance)}</td>
+        </tr>
+      `;
+      if (isStepUp) {
+        curMonthly = curMonthly * (1 + stepUp / 100);
+      }
+    }
+
+    const estReturns = balance - totalInvested;
+    document.getElementById('sipCards').innerHTML = `
+      ${buildResultCard('Total Invested', formatINR(totalInvested), formatLakhsCrores(totalInvested), 'slate')}
+      ${buildResultCard('Est. Wealth Gain', formatINR(estReturns), formatLakhsCrores(estReturns), 'emerald')}
+      ${buildResultCard('Maturity Value', formatINR(balance), formatLakhsCrores(balance), 'blue')}
+    `;
+    document.getElementById('sipTableBody').innerHTML = rowsHtml;
+
+    if (activeCharts.sipChart) activeCharts.sipChart.destroy();
+    const ctx = document.getElementById('sipChart').getContext('2d');
+    const datasets = [
+      { label: 'Total Invested', data: investedSeries, backgroundColor: '#94a3b8', borderRadius: 4 },
+      { label: isStepUp ? 'Step-Up Maturity Value' : 'Total Maturity Value', data: balanceSeries, backgroundColor: '#1d4ed8', borderRadius: 4 }
+    ];
+    if (isStepUp) {
+      datasets.push({ label: 'Regular SIP (No Step-Up)', data: regSeries, backgroundColor: '#10b981', borderRadius: 4 });
+    }
+
+    activeCharts.sipChart = new Chart(ctx, {
+      type: 'bar',
+      data: { labels, datasets },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } },
+        scales: {
+          y: { ticks: { callback: v => formatLakhsCrores(v), font: { size: 10 } } },
+          x: { ticks: { font: { size: 10 } } }
+        }
+      }
+    });
+
+    latestSnapshot = {
+      title: isStepUp ? `Step-Up SIP (${formatINR(monthly)}/mo +${stepUp}%)` : `SIP (${formatINR(monthly)}/mo)`,
+      summaryMetrics: {
+        'Monthly SIP': formatINR(monthly),
+        'Tenure': `${years} Yrs @ ${rate}%`,
+        'Total Invested': formatLakhsCrores(totalInvested),
+        'Maturity Value': formatLakhsCrores(balance)
+      }
+    };
+  };
+
+  bindSyncedInput('sipMonthly', update, true);
+  if (isStepUp) bindSyncedInput('sipStepUp', update, false);
+  bindSyncedInput('sipRate', update, false);
+  bindSyncedInput('sipYears', update, false);
+  update();
+}
+
+/**
+ * ============================================================================
+ * B3. LUMPSUM CALCULATOR
+ * ============================================================================
+ */
+function renderLumpsumCalculator(container) {
+  container.innerHTML = `
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div class="lg:col-span-5 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-5">
+        ${buildCurrencyControl({ id: 'lsAmount', label: 'One-Time Investment', value: 500000, min: 10000, max: 50000000, step: 10000, unit: '₹' })}
+        ${buildCurrencyControl({ id: 'lsRate', label: 'Expected Annual Return (%)', value: 12, min: 1, max: 30, step: 0.5, unit: '%', showWords: false })}
+        ${buildCurrencyControl({ id: 'lsYears', label: 'Duration (Years)', value: 10, min: 1, max: 40, step: 1, unit: ' Yrs', showWords: false })}
+      </div>
+      <div class="lg:col-span-7 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-5">
+        <div id="lsCards" class="grid grid-cols-1 sm:grid-cols-3 gap-3.5"></div>
+        <div class="h-60 relative flex items-center justify-center">
+          <canvas id="lsChart"></canvas>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const update = () => {
+    const p = parseFloat(document.getElementById('lsAmount').value) || 0;
+    const r = parseFloat(document.getElementById('lsRate').value) || 0;
+    const t = parseInt(document.getElementById('lsYears').value) || 1;
+    const fv = p * Math.pow(1 + r / 100, t);
+    const gain = fv - p;
+
+    document.getElementById('lsCards').innerHTML = `
+      ${buildResultCard('Principal Invested', formatINR(p), formatLakhsCrores(p), 'slate')}
+      ${buildResultCard('Est. Capital Gain', formatINR(gain), formatLakhsCrores(gain), 'emerald')}
+      ${buildResultCard('Total Future Value', formatINR(fv), formatLakhsCrores(fv), 'blue')}
+    `;
+
+    if (activeCharts.lsChart) activeCharts.lsChart.destroy();
+    activeCharts.lsChart = new Chart(document.getElementById('lsChart').getContext('2d'), {
+      type: 'doughnut',
+      data: {
+        labels: ['Invested Amount', 'Estimated Returns'],
+        datasets: [{ data: [p, Math.max(0, gain)], backgroundColor: ['#cbd5e1', '#059669'], borderWidth: 0 }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, cutout: '68%', plugins: { legend: { position: 'bottom' } } }
+    });
+
+    latestSnapshot = {
+      title: `Lumpsum (${formatLakhsCrores(p)})`,
+      summaryMetrics: { 'Invested': formatLakhsCrores(p), 'Rate & Tenure': `${r}% for ${t}Y`, 'Maturity': formatLakhsCrores(fv) }
+    };
+  };
+
+  bindSyncedInput('lsAmount', update, true);
+  bindSyncedInput('lsRate', update, false);
+  bindSyncedInput('lsYears', update, false);
+  update();
+}
+
+/**
+ * ============================================================================
+ * B4. MUTUAL FUND RETURN CALCULATOR (LUMPSUM + SIP + EXPENSE RATIO)
+ * ============================================================================
+ */
+function renderMFReturnCalculator(container) {
+  container.innerHTML = `
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div class="lg:col-span-5 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-4">
+        <div class="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-xl">
+          <button id="mfModeSip" class="py-2 rounded-lg text-xs font-bold bg-white text-blue-700 shadow-xs">SIP Mode</button>
+          <button id="mfModeLs" class="py-2 rounded-lg text-xs font-semibold text-slate-600">Lumpsum Mode</button>
+        </div>
+        ${buildCurrencyControl({ id: 'mfAmt', label: 'Investment Amount', value: 10000, min: 500, max: 2000000, step: 500, unit: '₹' })}
+        ${buildCurrencyControl({ id: 'mfRate', label: 'Gross Expected Return (%)', value: 14, min: 1, max: 30, step: 0.5, unit: '%', showWords: false })}
+        ${buildCurrencyControl({ id: 'mfTer', label: 'Total Expense Ratio (TER %)', value: 1.2, min: 0, max: 3, step: 0.1, unit: '%', showWords: false })}
+        ${buildCurrencyControl({ id: 'mfYears', label: 'Holding Period (Years)', value: 10, min: 1, max: 35, step: 1, unit: ' Yrs', showWords: false })}
+      </div>
+      <div class="lg:col-span-7 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-4" id="mfResults"></div>
+    </div>
+  `;
+
+  let mode = 'sip';
+  const btnSip = document.getElementById('mfModeSip');
+  const btnLs = document.getElementById('mfModeLs');
+
+  const update = () => {
+    const amt = parseFloat(document.getElementById('mfAmt').value) || 0;
+    const gross = parseFloat(document.getElementById('mfRate').value) || 0;
+    const ter = parseFloat(document.getElementById('mfTer').value) || 0;
+    const yrs = parseInt(document.getElementById('mfYears').value) || 1;
+    const netRate = Math.max(0, gross - ter);
+
+    let invested = 0, grossFV = 0, netFV = 0;
+    if (mode === 'sip') {
+      const n = yrs * 12;
+      invested = amt * n;
+      const rg = gross / 12 / 100;
+      const rn = netRate / 12 / 100;
+      grossFV = rg > 0 ? amt * ((Math.pow(1 + rg, n) - 1) / rg) * (1 + rg) : invested;
+      netFV = rn > 0 ? amt * ((Math.pow(1 + rn, n) - 1) / rn) * (1 + rn) : invested;
+    } else {
+      invested = amt;
+      grossFV = amt * Math.pow(1 + gross / 100, yrs);
+      netFV = amt * Math.pow(1 + netRate / 100, yrs);
+    }
+
+    const terImpact = grossFV - netFV;
+    const absReturn = invested > 0 ? ((netFV - invested) / invested) * 100 : 0;
+
+    document.getElementById('mfResults').innerHTML = `
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+        ${buildResultCard('Total Invested', formatINR(invested), formatLakhsCrores(invested), 'slate')}
+        ${buildResultCard('Net Maturity Value (After TER)', formatINR(netFV), formatLakhsCrores(netFV), 'blue')}
+        ${buildResultCard('Net Wealth Gain', formatINR(netFV - invested), `+${absReturn.toFixed(1)}% Abs`, 'emerald')}
+        ${buildResultCard('Expense Ratio Cost Drag', formatINR(terImpact), `Net CAGR: ${netRate.toFixed(2)}%`, 'amber')}
+      </div>
+    `;
+
+    latestSnapshot = {
+      title: `MF Return (${mode.toUpperCase()})`,
+      summaryMetrics: { 'Invested': formatLakhsCrores(invested), 'Net Value': formatLakhsCrores(netFV), 'TER Drag': formatINR(terImpact) }
+    };
+  };
+
+  btnSip.onclick = () => {
+    mode = 'sip';
+    btnSip.className = 'py-2 rounded-lg text-xs font-bold bg-white text-blue-700 shadow-xs';
+    btnLs.className = 'py-2 rounded-lg text-xs font-semibold text-slate-600';
+    update();
+  };
+  btnLs.onclick = () => {
+    mode = 'ls';
+    btnLs.className = 'py-2 rounded-lg text-xs font-bold bg-white text-blue-700 shadow-xs';
+    btnSip.className = 'py-2 rounded-lg text-xs font-semibold text-slate-600';
+    update();
+  };
+
+  ['mfAmt', 'mfRate', 'mfTer', 'mfYears'].forEach(id => bindSyncedInput(id, update, id === 'mfAmt'));
+  update();
+}
+
+/**
+ * ============================================================================
+ * B5. CAGR CALCULATOR
+ * ============================================================================
+ */
+function renderCAGRCalculator(container) {
+  container.innerHTML = `
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div class="lg:col-span-5 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-5">
+        ${buildCurrencyControl({ id: 'cagrInit', label: 'Initial Investment Value', value: 200000, min: 1000, max: 50000000, step: 1000, unit: '₹' })}
+        ${buildCurrencyControl({ id: 'cagrFinal', label: 'Final / Current Value', value: 450000, min: 1000, max: 100000000, step: 1000, unit: '₹' })}
+        ${buildCurrencyControl({ id: 'cagrYears', label: 'Investment Duration (Years)', value: 5, min: 1, max: 40, step: 0.5, unit: ' Yrs', showWords: false })}
+      </div>
+      <div class="lg:col-span-7 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col justify-center space-y-4" id="cagrResult"></div>
+    </div>
+  `;
+
+  const update = () => {
+    const v0 = parseFloat(document.getElementById('cagrInit').value) || 1;
+    const v1 = parseFloat(document.getElementById('cagrFinal').value) || 0;
+    const t = parseFloat(document.getElementById('cagrYears').value) || 1;
+
+    const cagr = (Math.pow(v1 / v0, 1 / t) - 1) * 100;
+    const absGrowth = ((v1 - v0) / v0) * 100;
+    const netGain = v1 - v0;
+
+    document.getElementById('cagrResult').innerHTML = `
+      <div class="p-6 rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-700 text-white">
+        <span class="text-xs font-semibold uppercase tracking-wider text-emerald-100">Compound Annual Growth Rate (CAGR)</span>
+        <div class="text-4xl font-extrabold mt-1 tabular-nums">${cagr.toFixed(2)}% <span class="text-sm font-normal text-emerald-100">p.a.</span></div>
+      </div>
+      <div class="grid grid-cols-2 gap-3.5">
+        ${buildResultCard('Absolute Return', `${absGrowth.toFixed(2)}%`, 'Total %', 'blue')}
+        ${buildResultCard('Net Profit / Loss', formatINR(netGain), formatLakhsCrores(netGain), netGain >= 0 ? 'emerald' : 'rose')}
+      </div>
+    `;
+
+    latestSnapshot = {
+      title: 'CAGR Analysis',
+      summaryMetrics: { 'Initial': formatLakhsCrores(v0), 'Final': formatLakhsCrores(v1), 'CAGR': `${cagr.toFixed(2)}%` }
+    };
+  };
+
+  bindSyncedInput('cagrInit', update, true);
+  bindSyncedInput('cagrFinal', update, true);
+  bindSyncedInput('cagrYears', update, false);
+  update();
+}
+
+/**
+ * ============================================================================
+ * B6. COMPOUND INTEREST CALCULATOR
+ * ============================================================================
+ */
+function renderCompoundInterestCalculator(container) {
+  container.innerHTML = `
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div class="lg:col-span-5 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-4">
+        ${buildCurrencyControl({ id: 'ciP', label: 'Principal Amount', value: 100000, min: 1000, max: 50000000, step: 1000, unit: '₹' })}
+        ${buildCurrencyControl({ id: 'ciR', label: 'Annual Interest Rate (%)', value: 8.5, min: 1, max: 30, step: 0.25, unit: '%', showWords: false })}
+        ${buildCurrencyControl({ id: 'ciT', label: 'Time Period (Years)', value: 5, min: 1, max: 30, step: 1, unit: ' Yrs', showWords: false })}
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1.5">Compounding Frequency</label>
+          <select id="ciFreq" class="w-full px-3.5 py-2.5 text-sm font-semibold border border-slate-300 rounded-xl bg-slate-50 focus:bg-white focus:border-blue-600 outline-none">
+            <option value="12">Monthly (12 times/yr)</option>
+            <option value="4" selected>Quarterly (4 times/yr - Bank FD Standard)</option>
+            <option value="2">Half-Yearly (2 times/yr)</option>
+            <option value="1">Yearly (1 time/yr)</option>
+          </select>
+        </div>
+      </div>
+      <div class="lg:col-span-7 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-4" id="ciResult"></div>
+    </div>
+  `;
+
+  const update = () => {
+    const p = parseFloat(document.getElementById('ciP').value) || 0;
+    const r = parseFloat(document.getElementById('ciR').value) || 0;
+    const t = parseFloat(document.getElementById('ciT').value) || 1;
+    const n = parseInt(document.getElementById('ciFreq').value) || 4;
+
+    const amount = p * Math.pow(1 + (r / 100) / n, n * t);
+    const interest = amount - p;
+    const ear = (Math.pow(1 + (r / 100) / n, n) - 1) * 100;
+
+    document.getElementById('ciResult').innerHTML = `
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+        ${buildResultCard('Principal Amount', formatINR(p), formatLakhsCrores(p), 'slate')}
+        ${buildResultCard('Compound Interest Earned', formatINR(interest), formatLakhsCrores(interest), 'emerald')}
+        ${buildResultCard('Total Maturity Amount', formatINR(amount), formatLakhsCrores(amount), 'blue')}
+        ${buildResultCard('Effective Annual Yield (EAR)', `${ear.toFixed(2)}%`, 'p.a.', 'amber')}
+      </div>
+    `;
+
+    latestSnapshot = {
+      title: 'Compound Interest',
+      summaryMetrics: { 'Principal': formatLakhsCrores(p), 'Interest': formatLakhsCrores(interest), 'Maturity': formatLakhsCrores(amount) }
+    };
+  };
+
+  bindSyncedInput('ciP', update, true);
+  bindSyncedInput('ciR', update, false);
+  bindSyncedInput('ciT', update, false);
+  document.getElementById('ciFreq').addEventListener('change', update);
+  update();
+}
+
+/**
+ * ============================================================================
+ * B7. SWP (SYSTEMATIC WITHDRAWAL PLAN) CALCULATOR
+ * ============================================================================
+ */
+function renderSWPCalculator(container) {
+  container.innerHTML = `
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div class="lg:col-span-5 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-4">
+        ${buildCurrencyControl({ id: 'swpCorpus', label: 'Initial Investment Corpus', value: 5000000, min: 100000, max: 100000000, step: 50000, unit: '₹' })}
+        ${buildCurrencyControl({ id: 'swpWithdraw', label: 'Monthly Withdrawal', value: 35000, min: 1000, max: 1000000, step: 1000, unit: '₹' })}
+        ${buildCurrencyControl({ id: 'swpRate', label: 'Expected Annual Return (%)', value: 9, min: 1, max: 20, step: 0.5, unit: '%', showWords: false })}
+        ${buildCurrencyControl({ id: 'swpYears', label: 'Withdrawal Tenure (Years)', value: 15, min: 1, max: 40, step: 1, unit: ' Yrs', showWords: false })}
+      </div>
+      <div class="lg:col-span-7 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-4">
+        <div id="swpCards" class="grid grid-cols-1 sm:grid-cols-3 gap-3.5"></div>
+        <div id="swpAlert" class="hidden p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-800 font-medium"></div>
+        <div class="overflow-x-auto max-h-64 border border-slate-200 rounded-xl">
+          <table class="w-full text-left text-xs tabular-nums">
+            <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200 sticky top-0">
+              <tr>
+                <th class="px-3.5 py-2.5">Year</th>
+                <th class="px-3.5 py-2.5">Annual Withdrawn</th>
+                <th class="px-3.5 py-2.5">Interest Earned</th>
+                <th class="px-3.5 py-2.5 text-right">Closing Corpus</th>
+              </tr>
+            </thead>
+            <tbody id="swpTableBody" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const update = () => {
+    const corpus = parseFloat(document.getElementById('swpCorpus').value) || 0;
+    const withdraw = parseFloat(document.getElementById('swpWithdraw').value) || 0;
+    const rate = parseFloat(document.getElementById('swpRate').value) || 0;
+    const years = parseInt(document.getElementById('swpYears').value) || 1;
+
+    const r = rate / 12 / 100;
+    let bal = corpus;
+    let totalWithdrawn = 0;
+    let depletedMonth = null;
+    let rowsHtml = '';
+
+    for (let y = 1; y <= years; y++) {
+      let yrWithdraw = 0;
+      let yrInterest = 0;
+      for (let m = 1; m <= 12; m++) {
+        if (bal <= 0) break;
+        const actualW = Math.min(bal, withdraw);
+        bal -= actualW;
+        yrWithdraw += actualW;
+        totalWithdrawn += actualW;
+        const interest = bal * r;
+        bal += interest;
+        yrInterest += interest;
+        if (bal <= 0 && depletedMonth === null) {
+          depletedMonth = (y - 1) * 12 + m;
+        }
+      }
+      rowsHtml += `
+        <tr class="hover:bg-slate-50">
+          <td class="px-3.5 py-2 font-semibold">Year ${y}</td>
+          <td class="px-3.5 py-2 text-slate-700">${formatINR(yrWithdraw)}</td>
+          <td class="px-3.5 py-2 text-emerald-600">+${formatINR(yrInterest)}</td>
+          <td class="px-3.5 py-2 text-right font-bold ${bal <= 0 ? 'text-rose-600' : 'text-slate-900'}">${formatINR(bal)}</td>
+        </tr>
+      `;
+    }
+
+    document.getElementById('swpCards').innerHTML = `
+      ${buildResultCard('Initial Corpus', formatINR(corpus), formatLakhsCrores(corpus), 'slate')}
+      ${buildResultCard('Total Withdrawn', formatINR(totalWithdrawn), formatLakhsCrores(totalWithdrawn), 'emerald')}
+      ${buildResultCard('Final Residual Corpus', formatINR(bal), formatLakhsCrores(bal), bal > 0 ? 'blue' : 'rose')}
+    `;
+
+    const alertEl = document.getElementById('swpAlert');
+    if (depletedMonth !== null) {
+      alertEl.classList.remove('hidden');
+      alertEl.textContent = `Warning: At ${formatINR(withdraw)}/month, your corpus depletes completely in Month ${depletedMonth} (${(depletedMonth / 12).toFixed(1)} years).`;
+    } else {
+      alertEl.classList.add('hidden');
+    }
+
+    document.getElementById('swpTableBody').innerHTML = rowsHtml;
+
+    latestSnapshot = {
+      title: `SWP (${formatINR(withdraw)}/mo)`,
+      summaryMetrics: { 'Initial Corpus': formatLakhsCrores(corpus), 'Total Withdrawn': formatLakhsCrores(totalWithdrawn), 'Final Balance': formatLakhsCrores(bal) }
+    };
+  };
+
+  ['swpCorpus', 'swpWithdraw', 'swpRate', 'swpYears'].forEach(id => bindSyncedInput(id, update, id === 'swpCorpus' || id === 'swpWithdraw'));
+  update();
+}
+
+/**
+ * ============================================================================
+ * B8. RETIREMENT PLANNING CALCULATOR
+ * ============================================================================
+ */
+function renderRetirementCalculator(container) {
+  container.innerHTML = `
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div class="lg:col-span-5 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-4">
+        <div class="grid grid-cols-3 gap-2.5">
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Current Age</label>
+            <input type="number" id="retCurAge" value="30" min="18" max="70" class="w-full px-3 py-2 text-sm font-bold border border-slate-300 rounded-xl" />
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Retire Age</label>
+            <input type="number" id="retAge" value="60" min="35" max="80" class="w-full px-3 py-2 text-sm font-bold border border-slate-300 rounded-xl" />
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Life Expect.</label>
+            <input type="number" id="retLife" value="85" min="60" max="105" class="w-full px-3 py-2 text-sm font-bold border border-slate-300 rounded-xl" />
+          </div>
+        </div>
+        ${buildCurrencyControl({ id: 'retExp', label: 'Current Monthly Expense', value: 50000, min: 10000, max: 1000000, step: 5000, unit: '₹' })}
+        ${buildCurrencyControl({ id: 'retInf', label: 'Expected Inflation (%)', value: 6, min: 2, max: 12, step: 0.5, unit: '%', showWords: false })}
+        ${buildCurrencyControl({ id: 'retPreR', label: 'Pre-Retirement Return (%)', value: 12, min: 5, max: 20, step: 0.5, unit: '%', showWords: false })}
+        ${buildCurrencyControl({ id: 'retPostR', label: 'Post-Retirement Return (%)', value: 8, min: 4, max: 15, step: 0.5, unit: '%', showWords: false })}
+      </div>
+
+      <div class="lg:col-span-7 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-4" id="retResults"></div>
+    </div>
+  `;
+
+  const update = () => {
+    const curAge = parseInt(document.getElementById('retCurAge').value) || 30;
+    const retAge = Math.max(curAge + 1, parseInt(document.getElementById('retAge').value) || 60);
+    const life = Math.max(retAge + 1, parseInt(document.getElementById('retLife').value) || 85);
+    const exp = parseFloat(document.getElementById('retExp').value) || 0;
+    const inf = (parseFloat(document.getElementById('retInf').value) || 0) / 100;
+    const preR = (parseFloat(document.getElementById('retPreR').value) || 0) / 100;
+    const postR = (parseFloat(document.getElementById('retPostR').value) || 0) / 100;
+
+    const yrsToRetire = retAge - curAge;
+    const retDuration = life - retAge;
+
+    const futureMonthlyExp = exp * Math.pow(1 + inf, yrsToRetire);
+    const futureAnnualExp = futureMonthlyExp * 12;
+
+    // Real rate during retirement
+    const realRate = (1 + postR) / (1 + inf) - 1;
+    let corpusNeeded = 0;
+    if (Math.abs(realRate) < 0.0001) {
+      corpusNeeded = futureAnnualExp * retDuration;
+    } else {
+      corpusNeeded = futureAnnualExp * ((1 - Math.pow(1 + realRate, -retDuration)) / realRate) * (1 + realRate);
+    }
+
+    const monthlyPreR = preR / 12;
+    const monthsToRetire = yrsToRetire * 12;
+    const requiredSIP = monthlyPreR > 0
+      ? corpusNeeded / (((Math.pow(1 + monthlyPreR, monthsToRetire) - 1) / monthlyPreR) * (1 + monthlyPreR))
+      : corpusNeeded / monthsToRetire;
+
+    document.getElementById('retResults').innerHTML = `
+      <div class="p-5 rounded-2xl bg-gradient-to-r from-navy-900 to-blue-900 text-white">
+        <div class="text-xs uppercase tracking-wider text-blue-200 font-semibold">Target Retirement Corpus at Age ${retAge}</div>
+        <div class="text-2xl sm:text-3xl font-extrabold mt-1 tabular-nums">${formatINR(corpusNeeded)} <span class="text-sm font-semibold text-emerald-300">(${formatLakhsCrores(corpusNeeded)})</span></div>
+        <div class="text-xs text-slate-300 mt-1.5">Sustains ${retDuration} years of post-retirement living up to age ${life}</div>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+        ${buildResultCard(`Monthly Expense at Age ${retAge}`, formatINR(futureMonthlyExp), formatLakhsCrores(futureMonthlyExp) + '/mo', 'amber')}
+        ${buildResultCard('Monthly SIP Required Today', formatINR(requiredSIP), formatLakhsCrores(requiredSIP) + '/mo', 'emerald')}
+      </div>
+    `;
+
+    latestSnapshot = {
+      title: `Retirement Plan (Age ${retAge})`,
+      summaryMetrics: { 'Target Corpus': formatLakhsCrores(corpusNeeded), 'Future Expense': `${formatINR(futureMonthlyExp)}/mo`, 'Required SIP': `${formatINR(requiredSIP)}/mo` }
+    };
+  };
+
+  ['retCurAge', 'retAge', 'retLife'].forEach(id => document.getElementById(id).addEventListener('input', update));
+  ['retExp', 'retInf', 'retPreR', 'retPostR'].forEach(id => bindSyncedInput(id, update, id === 'retExp'));
+  update();
+}
+
+/**
+ * ============================================================================
+ * B9. GOAL-BASED INVESTMENT CALCULATOR
+ * ============================================================================
+ */
+function renderGoalCalculator(container) {
+  container.innerHTML = `
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div class="lg:col-span-5 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Financial Goal Name</label>
+          <input type="text" id="goalTitle" value="Child Higher Education" class="w-full px-3.5 py-2 text-sm font-semibold border border-slate-300 rounded-xl" />
+        </div>
+        ${buildCurrencyControl({ id: 'goalTarget', label: 'Goal Cost in Today\'s Value', value: 2500000, min: 100000, max: 100000000, step: 50000, unit: '₹' })}
+        ${buildCurrencyControl({ id: 'goalYears', label: 'Years to Achieve Goal', value: 10, min: 1, max: 35, step: 1, unit: ' Yrs', showWords: false })}
+        ${buildCurrencyControl({ id: 'goalInf', label: 'Goal Inflation Rate (%)', value: 7, min: 0, max: 15, step: 0.5, unit: '%', showWords: false })}
+        ${buildCurrencyControl({ id: 'goalReturn', label: 'Expected Investment Return (%)', value: 12, min: 4, max: 25, step: 0.5, unit: '%', showWords: false })}
+      </div>
+      <div class="lg:col-span-7 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-4" id="goalResults"></div>
+    </div>
+  `;
+
+  const update = () => {
+    const title = document.getElementById('goalTitle').value || 'Financial Goal';
+    const target = parseFloat(document.getElementById('goalTarget').value) || 0;
+    const years = parseInt(document.getElementById('goalYears').value) || 1;
+    const inf = (parseFloat(document.getElementById('goalInf').value) || 0) / 100;
+    const ret = (parseFloat(document.getElementById('goalReturn').value) || 0) / 100;
+
+    const futureGoal = target * Math.pow(1 + inf, years);
+    const r = ret / 12;
+    const n = years * 12;
+    const reqSIP = r > 0 ? futureGoal / (((Math.pow(1 + r, n) - 1) / r) * (1 + r)) : futureGoal / n;
+    const reqLumpsum = futureGoal / Math.pow(1 + ret, years);
+
+    document.getElementById('goalResults').innerHTML = `
+      <div class="p-5 rounded-2xl bg-blue-50 border border-blue-200">
+        <span class="text-xs font-semibold text-blue-700 uppercase">Inflation-Adjusted Cost for "${title}"</span>
+        <div class="text-2xl sm:text-3xl font-extrabold text-blue-950 mt-1 tabular-nums">${formatINR(futureGoal)} <span class="text-sm font-semibold text-blue-700">(${formatLakhsCrores(futureGoal)})</span></div>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+        ${buildResultCard('Option A: Monthly SIP Needed', formatINR(reqSIP), formatLakhsCrores(reqSIP) + '/mo', 'emerald')}
+        ${buildResultCard('Option B: One-Time Lumpsum Today', formatINR(reqLumpsum), formatLakhsCrores(reqLumpsum), 'slate')}
+      </div>
+    `;
+
+    latestSnapshot = {
+      title: `Goal: ${title}`,
+      summaryMetrics: { 'Future Goal': formatLakhsCrores(futureGoal), 'Required SIP': `${formatINR(reqSIP)}/mo`, 'Or Lumpsum': formatLakhsCrores(reqLumpsum) }
+    };
+  };
+
+  document.getElementById('goalTitle').addEventListener('input', update);
+  ['goalTarget', 'goalYears', 'goalInf', 'goalReturn'].forEach(id => bindSyncedInput(id, update, id === 'goalTarget'));
+  update();
+}
+
+/**
+ * ============================================================================
+ * C1 & C2. HOME LOAN & CAR LOAN EMI CALCULATOR
+ * ============================================================================
+ */
+function renderLoanEMICalculator(type = 'home') {
+  const container = document.getElementById('calculatorContainer');
+  const isCar = type === 'car';
+
+  container.innerHTML = `
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div class="lg:col-span-5 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-5">
+        ${isCar ? `
+          ${buildCurrencyControl({ id: 'carPrice', label: 'Vehicle On-Road Price', value: 1200000, min: 200000, max: 20000000, step: 25000, unit: '₹' })}
+          ${buildCurrencyControl({ id: 'carDown', label: 'Down Payment', value: 250000, min: 0, max: 15000000, step: 25000, unit: '₹' })}
+        ` : `
+          ${buildCurrencyControl({ id: 'loanAmt', label: 'Home Loan Amount', value: 5000000, min: 100000, max: 100000000, step: 50000, unit: '₹' })}
+        `}
+        ${buildCurrencyControl({ id: 'loanRate', label: 'Interest Rate (% p.a.)', value: isCar ? 9.25 : 8.5, min: 5, max: 22, step: 0.05, unit: '%', showWords: false })}
+        ${buildCurrencyControl({ id: 'loanTenure', label: 'Loan Tenure (Years)', value: isCar ? 5 : 20, min: 1, max: isCar ? 8 : 30, step: 1, unit: ' Yrs', showWords: false })}
+      </div>
+
+      <div class="lg:col-span-7 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-5">
+        <div class="p-5 rounded-2xl bg-gradient-to-r from-blue-600 to-blue-800 text-white flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <span class="text-xs uppercase tracking-wider text-blue-100 font-semibold">Monthly Loan EMI</span>
+            <div id="emiHeroVal" class="text-3xl sm:text-4xl font-extrabold mt-0.5 tabular-nums">₹0</div>
+          </div>
+          <div id="emiPrincipalSub" class="text-right text-xs text-blue-100"></div>
+        </div>
+
+        <div id="emiCards" class="grid grid-cols-1 sm:grid-cols-3 gap-3.5"></div>
+
+        <div class="h-56 relative flex items-center justify-center">
+          <canvas id="emiDoughnutChart"></canvas>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const update = () => {
+    let principal = 0;
+    if (isCar) {
+      const price = parseFloat(document.getElementById('carPrice').value) || 0;
+      const down = parseFloat(document.getElementById('carDown').value) || 0;
+      principal = Math.max(0, price - down);
+    } else {
+      principal = parseFloat(document.getElementById('loanAmt').value) || 0;
+    }
+
+    const rate = parseFloat(document.getElementById('loanRate').value) || 0;
+    const years = parseInt(document.getElementById('loanTenure').value) || 1;
+    const months = years * 12;
+
+    const emi = calcMonthlyEMI(principal, rate, months);
+    const totalPay = emi * months;
+    const totalInterest = Math.max(0, totalPay - principal);
+
+    document.getElementById('emiHeroVal').textContent = formatINR(emi);
+    document.getElementById('emiPrincipalSub').innerHTML = `
+      <div>Net Loan Principal: <strong class="text-white">${formatLakhsCrores(principal)}</strong></div>
+      <div>${months} Monthly Installments @ ${rate}%</div>
+    `;
+
+    document.getElementById('emiCards').innerHTML = `
+      ${buildResultCard('Principal Amount', formatINR(principal), formatLakhsCrores(principal), 'slate')}
+      ${buildResultCard('Total Interest Payable', formatINR(totalInterest), formatLakhsCrores(totalInterest), 'amber')}
+      ${buildResultCard('Total Amount Payable', formatINR(totalPay), formatLakhsCrores(totalPay), 'blue')}
+    `;
+
+    if (activeCharts.emiDoughnutChart) activeCharts.emiDoughnutChart.destroy();
+    activeCharts.emiDoughnutChart = new Chart(document.getElementById('emiDoughnutChart').getContext('2d'), {
+      type: 'doughnut',
+      data: {
+        labels: ['Principal Loan', 'Total Interest'],
+        datasets: [{ data: [principal, totalInterest], backgroundColor: ['#1d4ed8', '#f59e0b'], borderWidth: 0 }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, cutout: '68%', plugins: { legend: { position: 'bottom' } } }
+    });
+
+    latestSnapshot = {
+      title: `${isCar ? 'Car' : 'Home'} Loan (${formatLakhsCrores(principal)} @ ${rate}%)`,
+      summaryMetrics: {
+        'Loan Principal': formatLakhsCrores(principal),
+        'Interest & Tenure': `${rate}% / ${years} Yrs`,
+        'Monthly EMI': formatINR(emi),
+        'Total Interest': formatLakhsCrores(totalInterest)
+      }
+    };
+  };
+
+  if (isCar) {
+    bindSyncedInput('carPrice', update, true);
+    bindSyncedInput('carDown', update, true);
+  } else {
+    bindSyncedInput('loanAmt', update, true);
+  }
+  bindSyncedInput('loanRate', update, false);
+  bindSyncedInput('loanTenure', update, false);
+  update();
+}
+
+/**
+ * ============================================================================
+ * C3. GOLD LOAN CALCULATOR
+ * ============================================================================
+ */
+function renderGoldLoanCalculator(container) {
+  container.innerHTML = `
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div class="lg:col-span-5 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-4">
+        ${buildCurrencyControl({ id: 'glWeight', label: 'Net Gold Weight (Grams)', value: 50, min: 5, max: 2000, step: 1, unit: ' g', showWords: false })}
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Gold Purity</label>
+            <select id="glPurity" class="w-full px-3 py-2 text-sm font-bold border border-slate-300 rounded-xl bg-slate-50">
+              <option value="22" selected>22 Karat (91.6%)</option>
+              <option value="24">24 Karat (99.9%)</option>
+              <option value="18">18 Karat (75.0%)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">24K Rate / Gram (₹)</label>
+            <input type="number" id="glRateGram" value="7800" min="1000" max="25000" step="50" class="w-full px-3 py-2 text-sm font-bold border border-slate-300 rounded-xl" />
+          </div>
+        </div>
+        ${buildCurrencyControl({ id: 'glLtv', label: 'Bank LTV % (RBI Cap: 75%)', value: 75, min: 30, max: 75, step: 1, unit: '%', showWords: false })}
+        ${buildCurrencyControl({ id: 'glRoi', label: 'Interest Rate (% p.a.)', value: 10.5, min: 7, max: 24, step: 0.25, unit: '%', showWords: false })}
+        ${buildCurrencyControl({ id: 'glMonths', label: 'Tenure (Months)', value: 12, min: 3, max: 36, step: 3, unit: ' M', showWords: false })}
+      </div>
+
+      <div class="lg:col-span-7 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-4" id="glResults"></div>
+    </div>
+  `;
+
+  const update = () => {
+    const wt = parseFloat(document.getElementById('glWeight').value) || 0;
+    const karat = parseInt(document.getElementById('glPurity').value) || 22;
+    const rate24 = parseFloat(document.getElementById('glRateGram').value) || 0;
+    const ltv = parseFloat(document.getElementById('glLtv').value) || 75;
+    const roi = parseFloat(document.getElementById('glRoi').value) || 0;
+    const months = parseInt(document.getElementById('glMonths').value) || 12;
+
+    const effectiveRate = rate24 * (karat / 24);
+    const goldValuation = wt * effectiveRate;
+    const maxLoan = goldValuation * (ltv / 100);
+    const monthlyEmi = calcMonthlyEMI(maxLoan, roi, months);
+    const bulletMonthlyInt = maxLoan * (roi / 12 / 100);
+
+    document.getElementById('glResults').innerHTML = `
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+        ${buildResultCard('Assessed Gold Valuation', formatINR(goldValuation), `${karat}K @ ${formatINR(effectiveRate)}/g`, 'slate')}
+        ${buildResultCard('Max Eligible Gold Loan', formatINR(maxLoan), formatLakhsCrores(maxLoan), 'emerald')}
+        ${buildResultCard('Regular Monthly EMI', formatINR(monthlyEmi), `${months} Months`, 'blue')}
+        ${buildResultCard('Interest-Only (Bullet Scheme)', formatINR(bulletMonthlyInt), '/month + Principal at end', 'amber')}
+      </div>
+    `;
+
+    latestSnapshot = {
+      title: `Gold Loan (${wt}g ${karat}K)`,
+      summaryMetrics: { 'Gold Value': formatLakhsCrores(goldValuation), 'Eligible Loan': formatLakhsCrores(maxLoan), 'Monthly EMI': formatINR(monthlyEmi) }
+    };
+  };
+
+  ['glWeight', 'glLtv', 'glRoi', 'glMonths'].forEach(id => bindSyncedInput(id, update, false));
+  document.getElementById('glPurity').addEventListener('change', update);
+  document.getElementById('glRateGram').addEventListener('input', update);
+  update();
+}
+
+/**
+ * ============================================================================
+ * C4. BALANCE TRANSFER CALCULATOR
+ * ============================================================================
+ */
+function renderBalanceTransferCalculator(container) {
+  container.innerHTML = `
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div class="lg:col-span-5 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-4">
+        ${buildCurrencyControl({ id: 'btPrincipal', label: 'Outstanding Loan Principal', value: 4000000, min: 100000, max: 100000000, step: 50000, unit: '₹' })}
+        ${buildCurrencyControl({ id: 'btRemYears', label: 'Remaining Tenure (Years)', value: 15, min: 1, max: 30, step: 1, unit: ' Yrs', showWords: false })}
+        ${buildCurrencyControl({ id: 'btOldRate', label: 'Current Lender ROI (%)', value: 9.65, min: 6, max: 20, step: 0.05, unit: '%', showWords: false })}
+        ${buildCurrencyControl({ id: 'btNewRate', label: 'New Lender ROI (%)', value: 8.45, min: 6, max: 20, step: 0.05, unit: '%', showWords: false })}
+        ${buildCurrencyControl({ id: 'btFee', label: 'New Transfer & Legal Fee (₹)', value: 15000, min: 0, max: 250000, step: 1000, unit: '₹' })}
+      </div>
+      <div class="lg:col-span-7 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-4" id="btResults"></div>
+    </div>
+  `;
+
+  const update = () => {
+    const p = parseFloat(document.getElementById('btPrincipal').value) || 0;
+    const yrs = parseInt(document.getElementById('btRemYears').value) || 1;
+    const oldR = parseFloat(document.getElementById('btOldRate').value) || 0;
+    const newR = parseFloat(document.getElementById('btNewRate').value) || 0;
+    const fee = parseFloat(document.getElementById('btFee').value) || 0;
+
+    const months = yrs * 12;
+    const oldEmi = calcMonthlyEMI(p, oldR, months);
+    const newEmi = calcMonthlyEMI(p, newR, months);
+    const monthlySave = oldEmi - newEmi;
+    const grossInterestSave = (oldEmi - newEmi) * months;
+    const netSavings = grossInterestSave - fee;
+
+    document.getElementById('btResults').innerHTML = `
+      <div class="p-5 rounded-2xl ${netSavings > 0 ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'}">
+        <span class="text-xs uppercase font-semibold opacity-90">Net Lifetime Savings After Fees</span>
+        <div class="text-3xl font-extrabold mt-1 tabular-nums">${formatINR(netSavings)} <span class="text-sm font-normal">(${formatLakhsCrores(netSavings)})</span></div>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+        ${buildResultCard('Current EMI', formatINR(oldEmi), `${oldR}%`, 'slate')}
+        ${buildResultCard('New Proposed EMI', formatINR(newEmi), `${newR}%`, 'blue')}
+        ${buildResultCard('Monthly EMI Reduction', formatINR(monthlySave), '/month', 'emerald')}
+      </div>
+    `;
+
+    latestSnapshot = {
+      title: `Balance Transfer (${oldR}% → ${newR}%)`,
+      summaryMetrics: { 'Outstanding': formatLakhsCrores(p), 'Monthly Saving': formatINR(monthlySave), 'Net Savings': formatLakhsCrores(netSavings) }
+    };
+  };
+
+  ['btPrincipal', 'btRemYears', 'btOldRate', 'btNewRate', 'btFee'].forEach(id => bindSyncedInput(id, update, id === 'btPrincipal' || id === 'btFee'));
+  update();
+}
+
+/**
+ * ============================================================================
+ * C5. LOAN PREPAYMENT / PART-PAYMENT CALCULATOR
+ * ============================================================================
+ */
+function renderPrepaymentCalculator(container) {
+  container.innerHTML = `
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div class="lg:col-span-5 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-4">
+        ${buildCurrencyControl({ id: 'ppLoan', label: 'Loan Amount', value: 4000000, min: 100000, max: 100000000, step: 50000, unit: '₹' })}
+        ${buildCurrencyControl({ id: 'ppRate', label: 'Interest Rate (% p.a.)', value: 8.75, min: 5, max: 20, step: 0.05, unit: '%', showWords: false })}
+        ${buildCurrencyControl({ id: 'ppYears', label: 'Original Tenure (Years)', value: 20, min: 1, max: 30, step: 1, unit: ' Yrs', showWords: false })}
+        ${buildCurrencyControl({ id: 'ppAmount', label: 'Lumpsum Part-Payment', value: 500000, min: 10000, max: 50000000, step: 10000, unit: '₹' })}
+        ${buildCurrencyControl({ id: 'ppMonth', label: 'Prepayment Paid at Month #', value: 24, min: 1, max: 300, step: 1, unit: ' M', showWords: false })}
+      </div>
+      <div class="lg:col-span-7 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-4" id="ppResults"></div>
+    </div>
+  `;
+
+  const update = () => {
+    const p = parseFloat(document.getElementById('ppLoan').value) || 0;
+    const rate = parseFloat(document.getElementById('ppRate').value) || 0;
+    const years = parseInt(document.getElementById('ppYears').value) || 1;
+    const partPay = parseFloat(document.getElementById('ppAmount').value) || 0;
+    const atMonth = parseInt(document.getElementById('ppMonth').value) || 1;
+
+    const totalMonths = years * 12;
+    const r = rate / 12 / 100;
+    const emi = calcMonthlyEMI(p, rate, totalMonths);
+    const origTotalInterest = Math.max(0, emi * totalMonths - p);
+
+    // Simulate month by month with part-payment
+    let bal = p;
+    let totalIntPaid = 0;
+    let actualMonths = 0;
+
+    for (let m = 1; m <= totalMonths * 2; m++) {
+      if (bal <= 0.5) break;
+      const interest = bal * r;
+      let principalPaid = emi - interest;
+      if (principalPaid > bal) principalPaid = bal;
+      bal -= principalPaid;
+      totalIntPaid += interest;
+      actualMonths = m;
+
+      if (m === atMonth && bal > 0) {
+        bal = Math.max(0, bal - partPay);
+      }
+    }
+
+    const interestSaved = Math.max(0, origTotalInterest - totalIntPaid);
+    const monthsSaved = Math.max(0, totalMonths - actualMonths);
+
+    document.getElementById('ppResults').innerHTML = `
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+        ${buildResultCard('Total Interest Saved', formatINR(interestSaved), formatLakhsCrores(interestSaved), 'emerald')}
+        ${buildResultCard('Loan Tenure Reduced By', `${monthsSaved} Months`, `${(monthsSaved / 12).toFixed(1)} Years`, 'blue')}
+        ${buildResultCard('Original Total Interest', formatINR(origTotalInterest), `${totalMonths} Months`, 'slate')}
+        ${buildResultCard('Revised Total Interest', formatINR(totalIntPaid), `${actualMonths} Months`, 'amber')}
+      </div>
+    `;
+
+    latestSnapshot = {
+      title: `Part-Payment (${formatLakhsCrores(partPay)} @ M${atMonth})`,
+      summaryMetrics: { 'Interest Saved': formatLakhsCrores(interestSaved), 'Tenure Saved': `${monthsSaved} Mos`, 'Monthly EMI': formatINR(emi) }
+    };
+  };
+
+  ['ppLoan', 'ppRate', 'ppYears', 'ppAmount', 'ppMonth'].forEach(id => bindSyncedInput(id, update, id === 'ppLoan' || id === 'ppAmount'));
+  update();
+}
+
+/**
+ * ============================================================================
+ * C6. LOAN AMORTIZATION SCHEDULE (YEAR-WISE & MONTH-WISE)
+ * ============================================================================
+ */
+function renderAmortizationCalculator(container) {
+  container.innerHTML = `
+    <div class="bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-5">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        ${buildCurrencyControl({ id: 'amLoan', label: 'Loan Principal', value: 3000000, min: 50000, max: 100000000, step: 50000, unit: '₹' })}
+        ${buildCurrencyControl({ id: 'amRate', label: 'Interest Rate (%)', value: 8.6, min: 4, max: 22, step: 0.1, unit: '%', showWords: false })}
+        ${buildCurrencyControl({ id: 'amYears', label: 'Tenure (Years)', value: 15, min: 1, max: 30, step: 1, unit: ' Yrs', showWords: false })}
+      </div>
+
+      <div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100">
+        <div id="amSummaryStrip" class="flex flex-wrap gap-4 text-xs"></div>
+        <div class="inline-flex p-1 bg-slate-100 rounded-xl">
+          <button id="amViewYear" class="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-white text-blue-700 shadow-xs">Year-Wise</button>
+          <button id="amViewMonth" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600">Month-Wise</button>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto max-h-96 border border-slate-200 rounded-xl">
+        <table class="w-full text-left text-xs tabular-nums">
+          <thead class="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200 sticky top-0">
+            <tr>
+              <th class="px-4 py-3" id="amColPeriod">Year</th>
+              <th class="px-4 py-3">Opening Balance</th>
+              <th class="px-4 py-3">Principal Paid</th>
+              <th class="px-4 py-3">Interest Paid</th>
+              <th class="px-4 py-3">Total Payment</th>
+              <th class="px-4 py-3 text-right">Closing Balance</th>
+            </tr>
+          </thead>
+          <tbody id="amBody" class="divide-y divide-slate-100"></tbody>
+        </table>
+      </div>
+    </div>
+  `;
+
+  let viewMode = 'year';
+  const btnYear = document.getElementById('amViewYear');
+  const btnMonth = document.getElementById('amViewMonth');
+
+  const update = () => {
+    const p = parseFloat(document.getElementById('amLoan').value) || 0;
+    const rate = parseFloat(document.getElementById('amRate').value) || 0;
+    const years = parseInt(document.getElementById('amYears').value) || 1;
+    const months = years * 12;
+    const r = rate / 12 / 100;
+    const emi = calcMonthlyEMI(p, rate, months);
+
+    document.getElementById('amSummaryStrip').innerHTML = `
+      <span>Monthly EMI: <strong class="text-blue-700 text-sm">${formatINR(emi)}</strong></span>
+      <span>Total Interest: <strong class="text-amber-700 text-sm">${formatINR(Math.max(0, emi * months - p))}</strong></span>
+    `;
+
+    document.getElementById('amColPeriod').textContent = viewMode === 'year' ? 'Year' : 'Month #';
+
+    let bal = p;
+    let html = '';
+    if (viewMode === 'month') {
+      for (let m = 1; m <= months; m++) {
+        const open = bal;
+        const intPart = open * r;
+        let prinPart = emi - intPart;
+        if (prinPart > bal) prinPart = bal;
+        bal = Math.max(0, open - prinPart);
+        html += `
+          <tr class="hover:bg-slate-50">
+            <td class="px-4 py-2 font-semibold">Month ${m}</td>
+            <td class="px-4 py-2 text-slate-600">${formatINR(open)}</td>
+            <td class="px-4 py-2 text-emerald-700 font-medium">${formatINR(prinPart)}</td>
+            <td class="px-4 py-2 text-amber-700">${formatINR(intPart)}</td>
+            <td class="px-4 py-2 font-medium">${formatINR(prinPart + intPart)}</td>
+            <td class="px-4 py-2 text-right font-bold text-slate-900">${formatINR(bal)}</td>
+          </tr>
+        `;
+      }
+    } else {
+      for (let y = 1; y <= years; y++) {
+        const open = bal;
+        let yrPrin = 0, yrInt = 0;
+        for (let m = 1; m <= 12; m++) {
+          const intPart = bal * r;
+          let prinPart = emi - intPart;
+          if (prinPart > bal) prinPart = bal;
+          bal = Math.max(0, bal - prinPart);
+          yrPrin += prinPart;
+          yrInt += intPart;
+        }
+        html += `
+          <tr class="hover:bg-slate-50">
+            <td class="px-4 py-2.5 font-semibold">Year ${y}</td>
+            <td class="px-4 py-2.5 text-slate-600">${formatINR(open)}</td>
+            <td class="px-4 py-2.5 text-emerald-700 font-medium">${formatINR(yrPrin)}</td>
+            <td class="px-4 py-2.5 text-amber-700">${formatINR(yrInt)}</td>
+            <td class="px-4 py-2.5 font-medium">${formatINR(yrPrin + yrInt)}</td>
+            <td class="px-4 py-2.5 text-right font-bold text-slate-900">${formatINR(bal)}</td>
+          </tr>
+        `;
+      }
+    }
+    document.getElementById('amBody').innerHTML = html;
+
+    latestSnapshot = {
+      title: `Amortization (${formatLakhsCrores(p)})`,
+      summaryMetrics: { 'Loan': formatLakhsCrores(p), 'Monthly EMI': formatINR(emi), 'Tenure': `${years} Yrs @ ${rate}%` }
+    };
+  };
+
+  btnYear.onclick = () => {
+    viewMode = 'year';
+    btnYear.className = 'px-3.5 py-1.5 rounded-lg text-xs font-bold bg-white text-blue-700 shadow-xs';
+    btnMonth.className = 'px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600';
+    update();
+  };
+  btnMonth.onclick = () => {
+    viewMode = 'month';
+    btnMonth.className = 'px-3.5 py-1.5 rounded-lg text-xs font-bold bg-white text-blue-700 shadow-xs';
+    btnYear.className = 'px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600';
+    update();
+  };
+
+  ['amLoan', 'amRate', 'amYears'].forEach(id => bindSyncedInput(id, update, id === 'amLoan'));
+  update();
+}
+
+/**
+ * ============================================================================
+ * C7. FLAT VS REDUCING INTEREST COMPARISON
+ * ============================================================================
+ */
+function renderFlatVsReducingCalculator(container) {
+  container.innerHTML = `
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div class="lg:col-span-5 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-5">
+        ${buildCurrencyControl({ id: 'frLoan', label: 'Loan Amount', value: 500000, min: 25000, max: 20000000, step: 25000, unit: '₹' })}
+        ${buildCurrencyControl({ id: 'frRate', label: 'Quoted Interest Rate (% p.a.)', value: 10, min: 3, max: 25, step: 0.25, unit: '%', showWords: false })}
+        ${buildCurrencyControl({ id: 'frYears', label: 'Tenure (Years)', value: 5, min: 1, max: 15, step: 1, unit: ' Yrs', showWords: false })}
+      </div>
+      <div class="lg:col-span-7 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-4" id="frResults"></div>
+    </div>
+  `;
+
+  const update = () => {
+    const p = parseFloat(document.getElementById('frLoan').value) || 0;
+    const rate = parseFloat(document.getElementById('frRate').value) || 0;
+    const years = parseInt(document.getElementById('frYears').value) || 1;
+    const months = years * 12;
+
+    // Flat
+    const flatInterest = p * (rate / 100) * years;
+    const flatTotal = p + flatInterest;
+    const flatEmi = flatTotal / months;
+
+    // Reducing
+    const redEmi = calcMonthlyEMI(p, rate, months);
+    const redTotal = redEmi * months;
+    const redInterest = Math.max(0, redTotal - p);
+
+    // Effective Reducing Rate for Flat EMI (Binary search)
+    let low = 0, high = 100, effRate = rate;
+    for (let i = 0; i < 40; i++) {
+      const mid = (low + high) / 2;
+      if (calcMonthlyEMI(p, mid, months) < flatEmi) low = mid;
+      else high = mid;
+      effRate = mid;
+    }
+
+    document.getElementById('frResults').innerHTML = `
+      <div class="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-950">
+        A <strong>${rate}% Flat Rate</strong> is actually equivalent to an effective reducing balance rate of <strong class="text-base text-rose-700">${effRate.toFixed(2)}% p.a.</strong> — costing you <strong>${formatINR(flatInterest - redInterest)}</strong> extra!
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="p-4 rounded-2xl border border-rose-200 bg-rose-50/40 space-y-2">
+          <div class="text-xs font-bold uppercase text-rose-700">Flat Rate Method (${rate}%)</div>
+          <div class="text-xl font-extrabold text-slate-900 tabular-nums">EMI: ${formatINR(flatEmi)}</div>
+          <div class="text-xs text-slate-600">Total Interest: <strong>${formatINR(flatInterest)}</strong></div>
+          <div class="text-xs text-slate-600">Total Payable: <strong>${formatINR(flatTotal)}</strong></div>
+        </div>
+        <div class="p-4 rounded-2xl border border-emerald-200 bg-emerald-50/40 space-y-2">
+          <div class="text-xs font-bold uppercase text-emerald-700">Reducing Balance (${rate}%)</div>
+          <div class="text-xl font-extrabold text-slate-900 tabular-nums">EMI: ${formatINR(redEmi)}</div>
+          <div class="text-xs text-slate-600">Total Interest: <strong>${formatINR(redInterest)}</strong></div>
+          <div class="text-xs text-slate-600">Total Payable: <strong>${formatINR(redTotal)}</strong></div>
+        </div>
+      </div>
+    `;
+
+    latestSnapshot = {
+      title: `Flat vs Reducing (${rate}%)`,
+      summaryMetrics: { 'Flat EMI': formatINR(flatEmi), 'Reducing EMI': formatINR(redEmi), 'Effective Rate': `${effRate.toFixed(2)}%` }
+    };
+  };
+
+  ['frLoan', 'frRate', 'frYears'].forEach(id => bindSyncedInput(id, update, id === 'frLoan'));
+  update();
+}
+
+/**
+ * ============================================================================
+ * D1. MULTI-APPLICANT LOAN ELIGIBILITY CALCULATOR (FLAGSHIP MODULE)
+ * ============================================================================
+ */
+let multiAppList = [
+  { id: 1, name: 'Primary Applicant', role: 'Salaried', income: 120000, existingEmi: 15000, otherOblig: 5000 },
+  { id: 2, name: 'Co-Applicant 1 (Spouse)', role: 'Salaried', income: 75000, existingEmi: 8000, otherOblig: 0 }
+];
+
+function renderMultiApplicantEligibility(container) {
+  container.innerHTML = `
+    <div class="space-y-6">
+      <!-- Mode Selector & Global Loan Parameters -->
+      <div class="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-5">
+        <div class="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-100">
+          <div>
+            <h3 class="text-sm font-bold text-slate-900">Applicant Structure Mode</h3>
+            <p class="text-xs text-slate-500">Combine household incomes and obligations across up to 5 co-applicants</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button onclick="setApplicantMode(1)" class="px-3.5 py-2 rounded-xl text-xs font-semibold border border-slate-200 hover:bg-slate-50 transition ${multiAppList.length === 1 ? 'bg-blue-600 text-white border-blue-600' : 'text-slate-700'}">Single Applicant</button>
+            <button onclick="setApplicantMode(2)" class="px-3.5 py-2 rounded-xl text-xs font-semibold border border-slate-200 hover:bg-slate-50 transition ${multiAppList.length === 2 ? 'bg-blue-600 text-white border-blue-600' : 'text-slate-700'}">Joint (2 Applicants)</button>
+            <button onclick="addCoApplicant()" class="inline-flex items-center gap-1 px-3.5 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition">
+              <span>+ Add Co-Applicant</span>
+              <span class="text-[10px] opacity-80">(${multiAppList.length}/5)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Dynamic Applicant Cards -->
+        <div id="applicantsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+
+        <!-- Lender Underwriting Policy Parameters -->
+        <div class="pt-4 border-t border-slate-100 grid grid-cols-1 md:grid-cols-3 gap-5">
+          ${buildCurrencyControl({ id: 'maFoir', label: 'Max Permissible FOIR (%)', value: 60, min: 35, max: 75, step: 1, unit: '%', showWords: false })}
+          ${buildCurrencyControl({ id: 'maRate', label: 'Proposed Interest Rate (%)', value: 8.5, min: 6, max: 18, step: 0.05, unit: '%', showWords: false })}
+          ${buildCurrencyControl({ id: 'maTenure', label: 'Proposed Tenure (Years)', value: 20, min: 1, max: 30, step: 1, unit: ' Yrs', showWords: false })}
+        </div>
+      </div>
+
+      <!-- Underwriting Output Dashboard -->
+      <div id="maOutputDashboard" class="space-y-5"></div>
+    </div>
+  `;
+
+  renderApplicantCards();
+  ['maFoir', 'maRate', 'maTenure'].forEach(id => bindSyncedInput(id, calculateMultiApplicant, false));
+  calculateMultiApplicant();
+}
+
+function setApplicantMode(count) {
+  if (count === 1) {
+    multiAppList = [multiAppList[0] || { id: 1, name: 'Primary Applicant', role: 'Salaried', income: 120000, existingEmi: 15000, otherOblig: 5000 }];
+  } else if (count === 2) {
+    if (multiAppList.length < 2) {
+      multiAppList.push({ id: Date.now(), name: 'Co-Applicant 1 (Spouse)', role: 'Salaried', income: 75000, existingEmi: 8000, otherOblig: 0 });
+    } else {
+      multiAppList = multiAppList.slice(0, 2);
+    }
+  }
+  selectCalculator('multi-applicant-eligibility');
+}
+
+function addCoApplicant() {
+  if (multiAppList.length >= 5) {
+    showToast('Maximum 5 co-applicants allowed per loan application', 'warning');
+    return;
+  }
+  const idx = multiAppList.length;
+  multiAppList.push({
+    id: Date.now(),
+    name: `Co-Applicant ${idx}`,
+    role: 'Salaried',
+    income: 50000,
+    existingEmi: 0,
+    otherOblig: 0
+  });
+  selectCalculator('multi-applicant-eligibility');
+}
+
+function removeCoApplicant(index) {
+  if (multiAppList.length <= 1) return;
+  multiAppList.splice(index, 1);
+  selectCalculator('multi-applicant-eligibility');
+}
+
+function renderApplicantCards() {
+  const grid = document.getElementById('applicantsGrid');
+  if (!grid) return;
+
+  grid.innerHTML = multiAppList.map((app, idx) => `
+    <div class="p-4 rounded-2xl bg-slate-50/90 border border-slate-200/90 space-y-3">
+      <div class="flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2 flex-1">
+          <span class="w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center shrink-0">${idx + 1}</span>
+          <input 
+            type="text" 
+            value="${app.name}" 
+            onchange="multiAppList[${idx}].name = this.value; calculateMultiApplicant();"
+            class="text-xs font-bold text-slate-900 bg-white px-2.5 py-1 rounded-lg border border-slate-200 w-full"
+          />
+        </div>
+        <select onchange="multiAppList[${idx}].role = this.value; calculateMultiApplicant();" class="text-[11px] font-semibold bg-white border border-slate-200 rounded-lg px-2 py-1 text-slate-700">
+          <option value="Salaried" ${app.role === 'Salaried' ? 'selected' : ''}>Salaried</option>
+          <option value="Self-Employed" ${app.role === 'Self-Employed' ? 'selected' : ''}>Self-Employed</option>
+          <option value="Professional" ${app.role === 'Professional' ? 'selected' : ''}>Professional</option>
+        </select>
+        ${idx > 0 ? `
+          <button onclick="removeCoApplicant(${idx})" class="text-rose-500 hover:text-rose-700 p-1 rounded-lg hover:bg-rose-50" title="Remove Applicant">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          </button>
+        ` : ''}
+      </div>
+
+      <div class="grid grid-cols-3 gap-2.5">
+        <div>
+          <label class="block text-[10px] font-semibold text-slate-500 mb-1">Net Monthly Income (₹)</label>
+          <input type="number" value="${app.income}" min="0" step="1000" oninput="multiAppList[${idx}].income = parseFloat(this.value)||0; calculateMultiApplicant();" class="w-full px-2.5 py-1.5 text-xs font-bold text-slate-900 bg-white border border-slate-300 rounded-lg tabular-nums" />
+          <span class="text-[10px] text-emerald-700 font-medium">${formatLakhsCrores(app.income)}</span>
+        </div>
+        <div>
+          <label class="block text-[10px] font-semibold text-slate-500 mb-1">Existing EMIs (₹)</label>
+          <input type="number" value="${app.existingEmi}" min="0" step="500" oninput="multiAppList[${idx}].existingEmi = parseFloat(this.value)||0; calculateMultiApplicant();" class="w-full px-2.5 py-1.5 text-xs font-bold text-slate-900 bg-white border border-slate-300 rounded-lg tabular-nums" />
+          <span class="text-[10px] text-slate-400">${formatLakhsCrores(app.existingEmi)}</span>
+        </div>
+        <div>
+          <label class="block text-[10px] font-semibold text-slate-500 mb-1">Other Obligations (₹)</label>
+          <input type="number" value="${app.otherOblig}" min="0" step="500" oninput="multiAppList[${idx}].otherOblig = parseFloat(this.value)||0; calculateMultiApplicant();" class="w-full px-2.5 py-1.5 text-xs font-bold text-slate-900 bg-white border border-slate-300 rounded-lg tabular-nums" />
+          <span class="text-[10px] text-slate-400">${formatLakhsCrores(app.otherOblig)}</span>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function calculateMultiApplicant() {
+  const maxFoir = parseFloat(document.getElementById('maFoir')?.value) || 60;
+  const roi = parseFloat(document.getElementById('maRate')?.value) || 8.5;
+  const tenureYears = parseInt(document.getElementById('maTenure')?.value) || 20;
+  const tenureMonths = tenureYears * 12;
+
+  let combinedIncome = 0;
+  let totalExistingEmi = 0;
+  let totalOtherOblig = 0;
+
+  multiAppList.forEach(a => {
+    combinedIncome += (a.income || 0);
+    totalExistingEmi += (a.existingEmi || 0);
+    totalOtherOblig += (a.otherOblig || 0);
+  });
+
+  const totalObligations = totalExistingEmi + totalOtherOblig;
+  const currentDbr = combinedIncome > 0 ? (totalExistingEmi / combinedIncome) * 100 : 0;
+  const currentFoir = combinedIncome > 0 ? (totalObligations / combinedIncome) * 100 : 0;
+
+  const maxPermissibleTotalOblig = combinedIncome * (maxFoir / 100);
+  const maxEligibleEmi = Math.max(0, maxPermissibleTotalOblig - totalObligations);
+
+  // Reverse EMI formula for Maximum Eligible Loan Amount
+  const r = roi / 12 / 100;
+  let maxEligibleLoan = 0;
+  if (maxEligibleEmi > 0) {
+    if (r > 0) {
+      const factor = Math.pow(1 + r, tenureMonths);
+      maxEligibleLoan = maxEligibleEmi * ((factor - 1) / (r * factor));
+    } else {
+      maxEligibleLoan = maxEligibleEmi * tenureMonths;
+    }
+  }
+
+  const out = document.getElementById('maOutputDashboard');
+  if (!out) return;
+
+  out.innerHTML = `
+    <!-- Hero Eligibility Banner -->
+    <div class="p-6 rounded-2xl bg-gradient-to-r from-navy-900 via-blue-900 to-emerald-900 text-white shadow-md grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+      <div>
+        <span class="inline-block px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[11px] font-bold uppercase tracking-wider mb-1">Maximum Eligible Loan Sanction</span>
+        <div class="text-3xl sm:text-4xl font-extrabold tabular-nums tracking-tight">${formatINR(maxEligibleLoan)}</div>
+        <div class="text-sm font-semibold text-emerald-300 mt-1">${formatLakhsCrores(maxEligibleLoan)} <span class="text-slate-300 font-normal">(@ ${roi}% for ${tenureYears} Years)</span></div>
+      </div>
+      <div class="bg-white/10 backdrop-blur-xs rounded-2xl p-4 border border-white/15 space-y-2">
+        <div class="flex justify-between text-xs">
+          <span class="text-slate-300">Maximum Eligible Monthly EMI:</span>
+          <span class="font-extrabold text-white text-base tabular-nums">${formatINR(maxEligibleEmi)}/mo</span>
+        </div>
+        <div class="flex justify-between text-xs">
+          <span class="text-slate-300">Max Permissible Obligations (${maxFoir}% FOIR):</span>
+          <span class="font-semibold text-blue-200 tabular-nums">${formatINR(maxPermissibleTotalOblig)}/mo</span>
+        </div>
+        <div class="flex justify-between text-xs">
+          <span class="text-slate-300">Less Existing EMIs &amp; Obligations:</span>
+          <span class="font-semibold text-amber-300 tabular-nums">− ${formatINR(totalObligations)}/mo</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Key Household Metrics -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+      ${buildResultCard('Combined Household Income', formatINR(combinedIncome), formatLakhsCrores(combinedIncome) + '/mo', 'blue')}
+      ${buildResultCard('Total Monthly Obligations', formatINR(totalObligations), formatLakhsCrores(totalObligations) + '/mo', 'amber')}
+      ${buildResultCard('Current Household FOIR', `${currentFoir.toFixed(1)}%`, `Limit: ${maxFoir}%`, currentFoir <= maxFoir ? 'emerald' : 'rose')}
+      ${buildResultCard('Current Household DBR', `${currentDbr.toFixed(1)}%`, 'Existing EMIs/Inc', 'slate')}
+    </div>
+
+    <!-- Applicant-Wise Contribution Breakdown Table -->
+    <div class="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
+      <div class="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between">
+        <h3 class="text-sm font-bold text-slate-800">Applicant-Wise Income &amp; Eligibility Contribution Breakdown</h3>
+        <span class="text-xs text-slate-500">${multiAppList.length} Applicant(s)</span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs tabular-nums">
+          <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
+            <tr>
+              <th class="px-4 py-3">Applicant</th>
+              <th class="px-4 py-3">Profile</th>
+              <th class="px-4 py-3">Net Income</th>
+              <th class="px-4 py-3">Income Share</th>
+              <th class="px-4 py-3">Existing Obligations</th>
+              <th class="px-4 py-3">Individual FOIR</th>
+              <th class="px-4 py-3 text-right">Net EMI Capacity</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            ${multiAppList.map(a => {
+              const share = combinedIncome > 0 ? ((a.income / combinedIncome) * 100).toFixed(1) : '0.0';
+              const appOblig = (a.existingEmi || 0) + (a.otherOblig || 0);
+              const appFoir = a.income > 0 ? ((appOblig / a.income) * 100).toFixed(1) : '0.0';
+              const appCapacity = Math.max(0, a.income * (maxFoir / 100) - appOblig);
+              return `
+                <tr class="hover:bg-slate-50">
+                  <td class="px-4 py-2.5 font-bold text-slate-900">${a.name}</td>
+                  <td class="px-4 py-2.5 text-slate-500">${a.role}</td>
+                  <td class="px-4 py-2.5 font-semibold text-slate-800">${formatINR(a.income)}</td>
+                  <td class="px-4 py-2.5 text-blue-700 font-semibold">${share}%</td>
+                  <td class="px-4 py-2.5 text-amber-700">${formatINR(appOblig)}</td>
+                  <td class="px-4 py-2.5">${appFoir}%</td>
+                  <td class="px-4 py-2.5 text-right font-bold text-emerald-700">${formatINR(appCapacity)}/mo</td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+
+  latestSnapshot = {
+    title: `Multi-Applicant Eligibility (${multiAppList.length} App.)`,
+    summaryMetrics: {
+      'Combined Income': `${formatINR(combinedIncome)}/mo`,
+      'Max Eligible EMI': `${formatINR(maxEligibleEmi)}/mo`,
+      'Max Eligible Loan': formatLakhsCrores(maxEligibleLoan),
+      'Household FOIR': `${currentFoir.toFixed(1)}% / ${maxFoir}%`
+    }
+  };
+}
+
+/**
+ * ============================================================================
+ * E1 - E13. BANKING – SANCTION & DISBURSEMENT CALCULATORS
+ * ============================================================================
+ */
+
+// E1. FOIR Calculator
+function renderFOIRCalculator(container) {
+  container.innerHTML = `
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div class="lg:col-span-5 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-4">
+        ${buildCurrencyControl({ id: 'foirInc', label: 'Net Monthly Income (Take-Home)', value: 100000, min: 10000, max: 2000000, step: 2500, unit: '₹' })}
+        ${buildCurrencyControl({ id: 'foirExist', label: 'Existing Monthly EMIs', value: 12000, min: 0, max: 1000000, step: 1000, unit: '₹' })}
+        ${buildCurrencyControl({ id: 'foirProp', label: 'Proposed New Loan EMI', value: 35000, min: 0, max: 1000000, step: 1000, unit: '₹' })}
+        ${buildCurrencyControl({ id: 'foirOther', label: 'Other Fixed Monthly Obligations', value: 3000, min: 0, max: 500000, step: 500, unit: '₹' })}
+      </div>
+      <div class="lg:col-span-7 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-4" id="foirRes"></div>
+    </div>
+  `;
+  const update = () => {
+    const inc = parseFloat(document.getElementById('foirInc').value) || 1;
+    const totalOblig = (parseFloat(document.getElementById('foirExist').value) || 0) +
+                       (parseFloat(document.getElementById('foirProp').value) || 0) +
+                       (parseFloat(document.getElementById('foirOther').value) || 0);
+    const foir = (totalOblig / inc) * 100;
+    const status = foir <= 50 ? { label: 'Comfortable / Low Risk (<=50%)', cls: 'emerald' }
+                 : foir <= 65 ? { label: 'Acceptable Bank Norm (50%–65%)', cls: 'amber' }
+                 : { label: 'High FOIR / Stretched (>65%)', cls: 'rose' };
+
+    document.getElementById('foirRes').innerHTML = `
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        ${buildResultCard('Calculated FOIR %', `${foir.toFixed(2)}%`, status.label, status.cls)}
+        ${buildResultCard('Total Fixed Obligations', formatINR(totalOblig), `Surplus: ${formatINR(Math.max(0, inc - totalOblig))}`, 'blue')}
+      </div>
+    `;
+    latestSnapshot = { title: 'FOIR Assessment', summaryMetrics: { 'Net Income': formatINR(inc), 'Total Obligations': formatINR(totalOblig), 'FOIR %': `${foir.toFixed(2)}%` } };
+  };
+  ['foirInc', 'foirExist', 'foirProp', 'foirOther'].forEach(id => bindSyncedInput(id, update, true));
+  update();
+}
+
+// E2. LTV Calculator
+function renderLTVCalculator(container) {
+  container.innerHTML = `
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div class="lg:col-span-5 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-4">
+        ${buildCurrencyControl({ id: 'ltvPropVal', label: 'Property Market / Agreement Value', value: 8000000, min: 500000, max: 200000000, step: 100000, unit: '₹' })}
+        ${buildCurrencyControl({ id: 'ltvLoan', label: 'Requested Loan Amount', value: 6000000, min: 100000, max: 180000000, step: 100000, unit: '₹' })}
+      </div>
+      <div class="lg:col-span-7 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-4" id="ltvRes"></div>
+    </div>
+  `;
+  const update = () => {
+    const val = parseFloat(document.getElementById('ltvPropVal').value) || 1;
+    const loan = parseFloat(document.getElementById('ltvLoan').value) || 0;
+    const ltv = (loan / val) * 100;
+    const ownContrib = Math.max(0, val - loan);
+
+    // RBI Home Loan LTV Norms: <=30L: 90%, 30L-75L: 80%, >75L: 75%
+    const rbiCap = loan <= 3000000 ? 90 : loan <= 7500000 ? 80 : 75;
+    const compliant = ltv <= rbiCap;
+
+    document.getElementById('ltvRes').innerHTML = `
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        ${buildResultCard('Loan-to-Value (LTV %)', `${ltv.toFixed(2)}%`, `RBI Slab Cap: ${rbiCap}%`, compliant ? 'emerald' : 'rose')}
+        ${buildResultCard('Borrower Own Contribution (OCR)', formatINR(ownContrib), `${(100 - ltv).toFixed(1)}% Margin`, 'blue')}
+      </div>
+    `;
+    latestSnapshot = { title: 'LTV Assessment', summaryMetrics: { 'Property Value': formatLakhsCrores(val), 'Loan': formatLakhsCrores(loan), 'LTV %': `${ltv.toFixed(2)}%` } };
+  };
+  ['ltvPropVal', 'ltvLoan'].forEach(id => bindSyncedInput(id, update, true));
+  update();
+}
+
+// E3. DBR Calculator
+function renderDBRCalculator(container) {
+  container.innerHTML = `
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div class="lg:col-span-5 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-4">
+        ${buildCurrencyControl({ id: 'dbrGross', label: 'Gross Monthly Income', value: 125000, min: 15000, max: 3000000, step: 5000, unit: '₹' })}
+        ${buildCurrencyControl({ id: 'dbrDebt', label: 'Total Monthly Debt Payments (All EMIs + CC)', value: 45000, min: 0, max: 2000000, step: 1000, unit: '₹' })}
+      </div>
+      <div class="lg:col-span-7 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-4" id="dbrRes"></div>
+    </div>
+  `;
+  const update = () => {
+    const gross = parseFloat(document.getElementById('dbrGross').value) || 1;
+    const debt = parseFloat(document.getElementById('dbrDebt').value) || 0;
+    const dbr = (debt / gross) * 100;
+    document.getElementById('dbrRes').innerHTML = `
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        ${buildResultCard('Debt Burden Ratio (DBR)', `${dbr.toFixed(2)}%`, dbr <= 45 ? 'Healthy (<=45%)' : 'Elevated (>45%)', dbr <= 45 ? 'emerald' : 'amber')}
+        ${buildResultCard('Unencumbered Gross Income', formatINR(Math.max(0, gross - debt)), '/month', 'blue')}
+      </div>
+    `;
+    latestSnapshot = { title: 'DBR Analysis', summaryMetrics: { 'Gross Income': formatINR(gross), 'Monthly Debt': formatINR(debt), 'DBR %': `${dbr.toFixed(2)}%` } };
+  };
+  ['dbrGross', 'dbrDebt'].forEach(id => bindSyncedInput(id, update, true));
+  update();
+}
+
+// E4. DSCR Calculator
+function renderDSCRCalculator(container) {
+  container.innerHTML = `
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div class="lg:col-span-5 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-4">
+        ${buildCurrencyControl({ id: 'dscrPat', label: 'Net Profit After Tax (Annual)', value: 1800000, min: 0, max: 100000000, step: 50000, unit: '₹' })}
+        ${buildCurrencyControl({ id: 'dscrDep', label: 'Depreciation & Non-Cash Exp.', value: 400000, min: 0, max: 50000000, step: 25000, unit: '₹' })}
+        ${buildCurrencyControl({ id: 'dscrInt', label: 'Annual Interest on Term Loans', value: 600000, min: 0, max: 50000000, step: 25000, unit: '₹' })}
+        ${buildCurrencyControl({ id: 'dscrPrin', label: 'Annual Principal Repayment', value: 1200000, min: 10000, max: 50000000, step: 25000, unit: '₹' })}
+      </div>
+      <div class="lg:col-span-7 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-4" id="dscrRes"></div>
+    </div>
+  `;
+  const update = () => {
+    const pat = parseFloat(document.getElementById('dscrPat').value) || 0;
+    const dep = parseFloat(document.getElementById('dscrDep').value) || 0;
+    const intr = parseFloat(document.getElementById('dscrInt').value) || 0;
+    const prin = parseFloat(document.getElementById('dscrPrin').value) || 0;
+
+    const cashAvailable = pat + dep + intr;
+    const debtService = Math.max(1, prin + intr);
+    const dscr = cashAvailable / debtService;
+    const viable = dscr >= 1.25;
+
+    document.getElementById('dscrRes').innerHTML = `
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        ${buildResultCard('Calculated DSCR', `${dscr.toFixed(2)}x`, viable ? 'Bankable (>= 1.25x)' : 'Below Benchmark (<1.25x)', viable ? 'emerald' : 'rose')}
+        ${buildResultCard('Cash Available for Debt Service', formatINR(cashAvailable), formatLakhsCrores(cashAvailable), 'blue')}
+        ${buildResultCard('Total Annual Debt Service', formatINR(debtService), formatLakhsCrores(debtService), 'slate')}
+        ${buildResultCard('Net Cash Surplus Post-Debt', formatINR(cashAvailable - debtService), '/year', 'emerald')}
+      </div>
+    `;
+    latestSnapshot = { title: 'DSCR Commercial Assessment', summaryMetrics: { 'Cash Available': formatLakhsCrores(cashAvailable), 'Debt Service': formatLakhsCrores(debtService), 'DSCR': `${dscr.toFixed(2)}x` } };
+  };
+  ['dscrPat', 'dscrDep', 'dscrInt', 'dscrPrin'].forEach(id => bindSyncedInput(id, update, true));
+  update();
+}
+
+// E5. Net Salary Calculator
+function renderNetSalaryCalculator(container) {
+  container.innerHTML = `
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div class="lg:col-span-5 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-4">
+        ${buildCurrencyControl({ id: 'nsGross', label: 'Gross Monthly Salary', value: 110000, min: 10000, max: 2000000, step: 2500, unit: '₹' })}
+        ${buildCurrencyControl({ id: 'nsPf', label: 'Employee EPF Deduction', value: 3600, min: 0, max: 100000, step: 200, unit: '₹' })}
+        ${buildCurrencyControl({ id: 'nsPt', label: 'Professional Tax (PT)', value: 200, min: 0, max: 2500, step: 50, unit: '₹' })}
+        ${buildCurrencyControl({ id: 'nsTds', label: 'Monthly Income Tax (TDS)', value: 8500, min: 0, max: 500000, step: 500, unit: '₹' })}
+        ${buildCurrencyControl({ id: 'nsOther', label: 'Other Deductions (NPS/VPF/ESI)', value: 0, min: 0, max: 100000, step: 500, unit: '₹' })}
+      </div>
+      <div class="lg:col-span-7 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-4" id="nsRes"></div>
+    </div>
+  `;
+  const update = () => {
+    const gross = parseFloat(document.getElementById('nsGross').value) || 0;
+    const ded = (parseFloat(document.getElementById('nsPf').value) || 0) +
+                (parseFloat(document.getElementById('nsPt').value) || 0) +
+                (parseFloat(document.getElementById('nsTds').value) || 0) +
+                (parseFloat(document.getElementById('nsOther').value) || 0);
+    const net = Math.max(0, gross - ded);
+    document.getElementById('nsRes').innerHTML = `
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        ${buildResultCard('Net Take-Home Monthly Salary', formatINR(net), formatLakhsCrores(net) + '/mo', 'emerald')}
+        ${buildResultCard('Total Monthly Deductions', formatINR(ded), `${gross > 0 ? ((ded / gross) * 100).toFixed(1) : 0}% of Gross`, 'amber')}
+        ${buildResultCard('Annualized Net Take-Home', formatINR(net * 12), formatLakhsCrores(net * 12) + '/yr', 'blue')}
+      </div>
+    `;
+    latestSnapshot = { title: 'Net Salary Appraisal', summaryMetrics: { 'Gross Monthly': formatINR(gross), 'Deductions': formatINR(ded), 'Net Take-Home': formatINR(net) } };
+  };
+  ['nsGross', 'nsPf', 'nsPt', 'nsTds', 'nsOther'].forEach(id => bindSyncedInput(id, update, true));
+  update();
+}
+
+// E6. Gross Income Assessment
+function renderGrossIncomeCalculator(container) {
+  container.innerHTML = `
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div class="lg:col-span-5 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-4">
+        ${buildCurrencyControl({ id: 'giFixed', label: 'Monthly Fixed Pay (Basic + DA + HRA)', value: 90000, min: 0, max: 2000000, step: 2500, unit: '₹' })}
+        ${buildCurrencyControl({ id: 'giVar', label: 'Monthly Avg. Variable / Bonus', value: 20000, min: 0, max: 1000000, step: 1000, unit: '₹' })}
+        ${buildCurrencyControl({ id: 'giVarWt', label: 'Bank Haircut Weight on Variable (%)', value: 50, min: 0, max: 100, step: 10, unit: '%', showWords: false })}
+        ${buildCurrencyControl({ id: 'giRent', label: 'Monthly Rental / Other Income', value: 15000, min: 0, max: 1000000, step: 1000, unit: '₹' })}
+        ${buildCurrencyControl({ id: 'giRentWt', label: 'Bank Weight on Rental Income (%)', value: 70, min: 0, max: 100, step: 10, unit: '%', showWords: false })}
+      </div>
+      <div class="lg:col-span-7 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-4" id="giRes"></div>
+    </div>
+  `;
+  const update = () => {
+    const fixed = parseFloat(document.getElementById('giFixed').value) || 0;
+    const varInc = parseFloat(document.getElementById('giVar').value) || 0;
+    const varWt = (parseFloat(document.getElementById('giVarWt').value) || 0) / 100;
+    const rent = parseFloat(document.getElementById('giRent').value) || 0;
+    const rentWt = (parseFloat(document.getElementById('giRentWt').value) || 0) / 100;
+
+    const totalDeclared = fixed + varInc + rent;
+    const bankAssessed = fixed + (varInc * varWt) + (rent * rentWt);
+
+    document.getElementById('giRes').innerHTML = `
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        ${buildResultCard('Total Declared Monthly Income', formatINR(totalDeclared), formatLakhsCrores(totalDeclared), 'slate')}
+        ${buildResultCard('Bank-Assessed Eligible Income', formatINR(bankAssessed), formatLakhsCrores(bankAssessed) + '/mo', 'emerald')}
+      </div>
+    `;
+    latestSnapshot = { title: 'Gross Income Appraisal', summaryMetrics: { 'Declared': formatINR(totalDeclared), 'Bank Assessed': formatINR(bankAssessed) } };
+  };
+  ['giFixed', 'giVar', 'giVarWt', 'giRent', 'giRentWt'].forEach(id => bindSyncedInput(id, update, !id.includes('Wt')));
+  update();
+}
+
+// E7. Processing Fee & GST Calculator
+function renderProcessingFeeCalculator(container) {
+  container.innerHTML = `
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div class="lg:col-span-5 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-4">
+        ${buildCurrencyControl({ id: 'pfLoan', label: 'Sanctioned Loan Amount', value: 5000000, min: 100000, max: 100000000, step: 50000, unit: '₹' })}
+        ${buildCurrencyControl({ id: 'pfPct', label: 'Processing Fee (%)', value: 0.5, min: 0, max: 5, step: 0.05, unit: '%', showWords: false })}
+        ${buildCurrencyControl({ id: 'pfGst', label: 'Applicable GST (%)', value: 18, min: 0, max: 28, step: 1, unit: '%', showWords: false })}
+      </div>
+      <div class="lg:col-span-7 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-4" id="pfRes"></div>
+    </div>
+  `;
+  const update = () => {
+    const loan = parseFloat(document.getElementById('pfLoan').value) || 0;
+    const pct = parseFloat(document.getElementById('pfPct').value) || 0;
+    const gstPct = parseFloat(document.getElementById('pfGst').value) || 18;
+
+    const baseFee = loan * (pct / 100);
+    const gstAmt = baseFee * (gstPct / 100);
+    const total = baseFee + gstAmt;
+
+    document.getElementById('pfRes').innerHTML = `
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+        ${buildResultCard('Base Processing Fee', formatINR(baseFee), `${pct}%`, 'slate')}
+        ${buildResultCard(`GST (${gstPct}%)`, formatINR(gstAmt), 'Tax', 'amber')}
+        ${buildResultCard('Total Fee Payable', formatINR(total), 'Incl. GST', 'blue')}
+      </div>
+    `;
+    latestSnapshot = { title: 'Processing Fee & GST', summaryMetrics: { 'Loan': formatLakhsCrores(loan), 'Base Fee': formatINR(baseFee), 'Total w/ GST': formatINR(total) } };
+  };
+  ['pfLoan', 'pfPct', 'pfGst'].forEach(id => bindSyncedInput(id, update, id === 'pfLoan'));
+  update();
+}
+
+// E8. Net Disbursement Calculator
+function renderNetDisbursementCalculator(container) {
+  container.innerHTML = `
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div class="lg:col-span-5 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-4">
+        ${buildCurrencyControl({ id: 'ndSanction', label: 'Sanctioned Loan Amount', value: 5000000, min: 100000, max: 100000000, step: 50000, unit: '₹' })}
+        ${buildCurrencyControl({ id: 'ndFee', label: 'Processing Fee (incl. GST)', value: 29500, min: 0, max: 500000, step: 500, unit: '₹' })}
+        ${buildCurrencyControl({ id: 'ndLegal', label: 'Legal & Technical Valuation Fee', value: 7500, min: 0, max: 100000, step: 500, unit: '₹' })}
+        ${buildCurrencyControl({ id: 'ndIns', label: 'Property / Credit Life Insurance', value: 45000, min: 0, max: 1000000, step: 1000, unit: '₹' })}
+        ${buildCurrencyControl({ id: 'ndModt', label: 'MODT / CERSAI / Franking Charges', value: 12000, min: 0, max: 500000, step: 500, unit: '₹' })}
+      </div>
+      <div class="lg:col-span-7 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-4" id="ndRes"></div>
+    </div>
+  `;
+  const update = () => {
+    const sanction = parseFloat(document.getElementById('ndSanction').value) || 0;
+    const deductions = (parseFloat(document.getElementById('ndFee').value) || 0) +
+                       (parseFloat(document.getElementById('ndLegal').value) || 0) +
+                       (parseFloat(document.getElementById('ndIns').value) || 0) +
+                       (parseFloat(document.getElementById('ndModt').value) || 0);
+    const netDisb = Math.max(0, sanction - deductions);
+
+    document.getElementById('ndRes').innerHTML = `
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        ${buildResultCard('Total Sanctioned Loan', formatINR(sanction), formatLakhsCrores(sanction), 'slate')}
+        ${buildResultCard('Total Sanction Deductions', formatINR(deductions), formatLakhsCrores(deductions), 'amber')}
+        ${buildResultCard('Net Payable Disbursement Amount', formatINR(netDisb), formatLakhsCrores(netDisb), 'emerald')}
+      </div>
+    `;
+    latestSnapshot = { title: 'Net Disbursement Estimate', summaryMetrics: { 'Sanctioned': formatLakhsCrores(sanction), 'Deductions': formatINR(deductions), 'Net Disbursement': formatLakhsCrores(netDisb) } };
+  };
+  ['ndSanction', 'ndFee', 'ndLegal', 'ndIns', 'ndModt'].forEach(id => bindSyncedInput(id, update, true));
+  update();
+}
+
+// E9. Stamp Duty & Registration Calculator
+function renderStampDutyCalculator(container) {
+  container.innerHTML = `
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div class="lg:col-span-5 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">State Rate Preset</label>
+          <select id="sdStatePreset" class="w-full px-3 py-2 text-xs font-bold border border-slate-300 rounded-xl bg-slate-50">
+            <option value="5,1">Maharashtra (5% Stamp + 1% Reg)</option>
+            <option value="4.9,1">Gujarat (4.9% Stamp + 1% Reg)</option>
+            <option value="5.6,1">Karnataka (5.6% Stamp + 1% Reg)</option>
+            <option value="7,4">Tamil Nadu (7% Stamp + 4% Reg)</option>
+            <option value="6,1">Delhi (6% Stamp + 1% Reg)</option>
+            <option value="7,1">Uttar Pradesh (7% Stamp + 1% Reg)</option>
+          </select>
+        </div>
+        ${buildCurrencyControl({ id: 'sdPropVal', label: 'Property Agreement / Ready Reckoner Value', value: 7500000, min: 500000, max: 200000000, step: 100000, unit: '₹' })}
+        ${buildCurrencyControl({ id: 'sdStampPct', label: 'Stamp Duty Rate (%)', value: 5, min: 1, max: 12, step: 0.1, unit: '%', showWords: false })}
+        ${buildCurrencyControl({ id: 'sdRegPct', label: 'Registration Fee (%)', value: 1, min: 0, max: 5, step: 0.1, unit: '%', showWords: false })}
+      </div>
+      <div class="lg:col-span-7 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-4" id="sdRes"></div>
+    </div>
+  `;
+  const update = () => {
+    const val = parseFloat(document.getElementById('sdPropVal').value) || 0;
+    const sPct = parseFloat(document.getElementById('sdStampPct').value) || 0;
+    const rPct = parseFloat(document.getElementById('sdRegPct').value) || 0;
+
+    const stamp = val * (sPct / 100);
+    const reg = val * (rPct / 100);
+    const total = stamp + reg;
+
+    document.getElementById('sdRes').innerHTML = `
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+        ${buildResultCard('Stamp Duty Payable', formatINR(stamp), `${sPct}%`, 'slate')}
+        ${buildResultCard('Registration Fee', formatINR(reg), `${rPct}%`, 'amber')}
+        ${buildResultCard('Total Govt. Charges', formatINR(total), formatLakhsCrores(total), 'blue')}
+      </div>
+    `;
+    latestSnapshot = { title: 'Stamp Duty & Registration', summaryMetrics: { 'Property Value': formatLakhsCrores(val), 'Stamp Duty': formatINR(stamp), 'Total Govt Charges': formatINR(total) } };
+  };
+
+  document.getElementById('sdStatePreset').addEventListener('change', (e) => {
+    const [s, r] = e.target.value.split(',');
+    document.getElementById('sdStampPct').value = s;
+    document.getElementById('sdStampPct_range').value = s;
+    document.getElementById('sdRegPct').value = r;
+    document.getElementById('sdRegPct_range').value = r;
+    update();
+  });
+
+  ['sdPropVal', 'sdStampPct', 'sdRegPct'].forEach(id => bindSyncedInput(id, update, id === 'sdPropVal'));
+  update();
+}
+
+// E10. Part Disbursement & Pre-EMI Calculator
+function renderPartDisbursementCalculator(container) {
+  container.innerHTML = `
+    <div class="bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-5">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        ${buildCurrencyControl({ id: 'pdSanction', label: 'Total Sanctioned Loan', value: 6000000, min: 500000, max: 100000000, step: 100000, unit: '₹' })}
+        ${buildCurrencyControl({ id: 'pdRate', label: 'Interest Rate (% p.a.)', value: 8.65, min: 5, max: 18, step: 0.05, unit: '%', showWords: false })}
+      </div>
+
+      <div class="overflow-x-auto border border-slate-200 rounded-xl">
+        <table class="w-full text-left text-xs tabular-nums">
+          <thead class="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
+            <tr>
+              <th class="px-4 py-3">Construction Stage</th>
+              <th class="px-4 py-3">Tranche Amount (₹)</th>
+              <th class="px-4 py-3">Duration (Months)</th>
+              <th class="px-4 py-3">Cumulative Disbursed</th>
+              <th class="px-4 py-3">Monthly Pre-EMI</th>
+              <th class="px-4 py-3 text-right">Stage Pre-EMI Interest</th>
+            </tr>
+          </thead>
+          <tbody id="pdTableBody" class="divide-y divide-slate-100"></tbody>
+        </table>
+      </div>
+      <div id="pdSummary" class="grid grid-cols-1 sm:grid-cols-3 gap-3.5"></div>
+    </div>
+  `;
+
+  let tranches = [
+    { stage: 'Tranche 1: Booking / Plinth', amt: 1500000, months: 6 },
+    { stage: 'Tranche 2: 5th Slab Completion', amt: 2000000, months: 6 },
+    { stage: 'Tranche 3: Brickwork & Plaster', amt: 1500000, months: 6 },
+    { stage: 'Tranche 4: Final Possession', amt: 1000000, months: 3 }
+  ];
+
+  const update = () => {
+    const rate = parseFloat(document.getElementById('pdRate').value) || 0;
+    const r = rate / 12 / 100;
+    let cum = 0;
+    let totalPreEmi = 0;
+
+    document.getElementById('pdTableBody').innerHTML = tranches.map((t, i) => {
+      cum += t.amt;
+      const monthlyPre = cum * r;
+      const stageInt = monthlyPre * t.months;
+      totalPreEmi += stageInt;
+      return `
+        <tr>
+          <td class="px-4 py-2.5 font-semibold text-slate-800">${t.stage}</td>
+          <td class="px-4 py-2.5">
+            <input type="number" value="${t.amt}" step="50000" data-idx="${i}" data-field="amt" class="pd-input w-32 px-2.5 py-1 border border-slate-300 rounded-lg font-bold" />
+          </td>
+          <td class="px-4 py-2.5">
+            <input type="number" value="${t.months}" min="1" max="36" data-idx="${i}" data-field="months" class="pd-input w-20 px-2.5 py-1 border border-slate-300 rounded-lg font-bold" />
+          </td>
+          <td class="px-4 py-2.5 font-medium text-slate-700">${formatINR(cum)}</td>
+          <td class="px-4 py-2.5 text-blue-700 font-semibold">${formatINR(monthlyPre)}/mo</td>
+          <td class="px-4 py-2.5 text-right font-bold text-amber-700">${formatINR(stageInt)}</td>
+        </tr>
+      `;
+    }).join('');
+
+    document.querySelectorAll('.pd-input').forEach(inp => {
+      inp.addEventListener('change', (e) => {
+        const idx = parseInt(e.target.dataset.idx);
+        const field = e.target.dataset.field;
+        tranches[idx][field] = parseFloat(e.target.value) || 0;
+        update();
+      });
+    });
+
+    document.getElementById('pdSummary').innerHTML = `
+      ${buildResultCard('Total Disbursed Principal', formatINR(cum), formatLakhsCrores(cum), 'slate')}
+      ${buildResultCard('Total Pre-EMI Simple Interest', formatINR(totalPreEmi), formatLakhsCrores(totalPreEmi), 'amber')}
+      ${buildResultCard('Full EMI Post-Possession (20Y)', formatINR(calcMonthlyEMI(cum, rate, 240)), '/month', 'blue')}
+    `;
+
+    latestSnapshot = { title: 'Part Disbursement & Pre-EMI', summaryMetrics: { 'Disbursed': formatLakhsCrores(cum), 'Total Pre-EMI': formatINR(totalPreEmi) } };
+  };
+
+  ['pdSanction', 'pdRate'].forEach(id => bindSyncedInput(id, update, id === 'pdSanction'));
+  update();
+}
+
+// E11. Interest Rate & Lender Offer Comparison
+function renderLenderComparisonCalculator(container) {
+  container.innerHTML = `
+    <div class="bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-5">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        ${buildCurrencyControl({ id: 'lcLoan', label: 'Loan Amount', value: 5000000, min: 100000, max: 100000000, step: 50000, unit: '₹' })}
+        ${buildCurrencyControl({ id: 'lcYears', label: 'Loan Tenure (Years)', value: 20, min: 1, max: 30, step: 1, unit: ' Yrs', showWords: false })}
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="lcOffersGrid"></div>
+    </div>
+  `;
+
+  const offers = [
+    { name: 'Bank A (PSU Bank)', roi: 8.40, fee: 10000 },
+    { name: 'Bank B (Private Bank)', roi: 8.65, fee: 15000 },
+    { name: 'Bank C (HFC / NBFC)', roi: 9.10, fee: 5000 }
+  ];
+
+  const update = () => {
+    const loan = parseFloat(document.getElementById('lcLoan').value) || 0;
+    const years = parseInt(document.getElementById('lcYears').value) || 1;
+    const months = years * 12;
+
+    const evaluated = offers.map(o => {
+      const emi = calcMonthlyEMI(loan, o.roi, months);
+      const totalInt = Math.max(0, emi * months - loan);
+      const totalCost = emi * months + o.fee;
+      return { ...o, emi, totalInt, totalCost };
+    });
+
+    const minCost = Math.min(...evaluated.map(e => e.totalCost));
+
+    document.getElementById('lcOffersGrid').innerHTML = evaluated.map((o, idx) => {
+      const isBest = o.totalCost === minCost;
+      return `
+        <div class="p-4 rounded-2xl border-2 ${isBest ? 'border-emerald-500 bg-emerald-50/30' : 'border-slate-200 bg-slate-50/50'} space-y-3">
+          <div class="flex items-center justify-between">
+            <input type="text" value="${o.name}" data-idx="${idx}" data-f="name" class="lc-inp text-xs font-bold bg-white px-2.5 py-1 rounded-lg border border-slate-200 w-40" />
+            ${isBest ? `<span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-600 text-white">LOWEST COST</span>` : ''}
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-[10px] text-slate-500 font-semibold">ROI (% p.a.)</label>
+              <input type="number" value="${o.roi}" step="0.05" data-idx="${idx}" data-f="roi" class="lc-inp w-full px-2.5 py-1 text-xs font-bold bg-white border border-slate-300 rounded-lg" />
+            </div>
+            <div>
+              <label class="text-[10px] text-slate-500 font-semibold">Proc. Fee (₹)</label>
+              <input type="number" value="${o.fee}" step="500" data-idx="${idx}" data-f="fee" class="lc-inp w-full px-2.5 py-1 text-xs font-bold bg-white border border-slate-300 rounded-lg" />
+            </div>
+          </div>
+          <div class="pt-2 border-t border-slate-200/80 space-y-1.5 text-xs tabular-nums">
+            <div class="flex justify-between"><span class="text-slate-500">Monthly EMI:</span><strong class="text-blue-700 text-sm">${formatINR(o.emi)}</strong></div>
+            <div class="flex justify-between"><span class="text-slate-500">Total Interest:</span><strong>${formatLakhsCrores(o.totalInt)}</strong></div>
+            <div class="flex justify-between"><span class="text-slate-500">Total Outflow:</span><strong class="text-slate-900">${formatLakhsCrores(o.totalCost)}</strong></div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    document.querySelectorAll('.lc-inp').forEach(el => {
+      el.addEventListener('change', (e) => {
+        const idx = parseInt(e.target.dataset.idx);
+        const f = e.target.dataset.f;
+        offers[idx][f] = f === 'name' ? e.target.value : (parseFloat(e.target.value) || 0);
+        update();
+      });
+    });
+
+    const bestOffer = evaluated.find(e => e.totalCost === minCost);
+    latestSnapshot = { title: 'Lender Offer Comparison', summaryMetrics: { 'Best Lender': bestOffer.name, 'Best EMI': formatINR(bestOffer.emi), 'Total Outflow': formatLakhsCrores(bestOffer.totalCost) } };
+  };
+
+  ['lcLoan', 'lcYears'].forEach(id => bindSyncedInput(id, update, id === 'lcLoan'));
+  update();
+}
+
+// E12. Loan Balance (Outstanding Principal) Calculator
+function renderLoanBalanceCalculator(container) {
+  container.innerHTML = `
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div class="lg:col-span-5 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-4">
+        ${buildCurrencyControl({ id: 'lbOrig', label: 'Original Loan Amount', value: 4500000, min: 100000, max: 100000000, step: 50000, unit: '₹' })}
+        ${buildCurrencyControl({ id: 'lbRate', label: 'Interest Rate (% p.a.)', value: 8.75, min: 4, max: 22, step: 0.05, unit: '%', showWords: false })}
+        ${buildCurrencyControl({ id: 'lbYears', label: 'Original Tenure (Years)', value: 20, min: 1, max: 30, step: 1, unit: ' Yrs', showWords: false })}
+        ${buildCurrencyControl({ id: 'lbPaid', label: 'Number of EMIs Already Paid', value: 36, min: 0, max: 360, step: 1, unit: ' M', showWords: false })}
+      </div>
+      <div class="lg:col-span-7 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-4" id="lbRes"></div>
+    </div>
+  `;
+  const update = () => {
+    const p = parseFloat(document.getElementById('lbOrig').value) || 0;
+    const rate = parseFloat(document.getElementById('lbRate').value) || 0;
+    const years = parseInt(document.getElementById('lbYears').value) || 1;
+    const n = years * 12;
+    const k = Math.min(n, parseInt(document.getElementById('lbPaid').value) || 0);
+
+    const r = rate / 12 / 100;
+    const emi = calcMonthlyEMI(p, rate, n);
+    let outstanding = p;
+    if (r > 0 && n > 0) {
+      outstanding = p * (Math.pow(1 + r, n) - Math.pow(1 + r, k)) / (Math.pow(1 + r, n) - 1);
+    } else if (n > 0) {
+      outstanding = p * (1 - k / n);
+    }
+
+    const principalRepaid = Math.max(0, p - outstanding);
+    const interestPaidSoFar = Math.max(0, emi * k - principalRepaid);
+
+    document.getElementById('lbRes').innerHTML = `
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        ${buildResultCard('Remaining Principal Outstanding', formatINR(outstanding), formatLakhsCrores(outstanding), 'blue')}
+        ${buildResultCard('Principal Repaid So Far', formatINR(principalRepaid), `${p > 0 ? ((principalRepaid / p) * 100).toFixed(1) : 0}% Paid`, 'emerald')}
+        ${buildResultCard('Interest Paid in ' + k + ' EMIs', formatINR(interestPaidSoFar), formatLakhsCrores(interestPaidSoFar), 'amber')}
+        ${buildResultCard('Remaining EMIs', `${n - k} Months`, `${((n - k) / 12).toFixed(1)} Years`, 'slate')}
+      </div>
+    `;
+    latestSnapshot = { title: 'Outstanding Principal Statement', summaryMetrics: { 'Outstanding': formatLakhsCrores(outstanding), 'Principal Repaid': formatLakhsCrores(principalRepaid), 'EMIs Left': `${n - k}` } };
+  };
+  ['lbOrig', 'lbRate', 'lbYears', 'lbPaid'].forEach(id => bindSyncedInput(id, update, id === 'lbOrig'));
+  update();
+}
+
+// E13. Takeover / BT + Top-Up Calculation
+function renderTakeoverTopupCalculator(container) {
+  container.innerHTML = `
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div class="lg:col-span-5 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-4">
+        ${buildCurrencyControl({ id: 'ttExist', label: 'Existing Loan Takeover Amount', value: 3500000, min: 100000, max: 100000000, step: 50000, unit: '₹' })}
+        ${buildCurrencyControl({ id: 'ttTopup', label: 'Additional Top-Up Loan Requested', value: 1000000, min: 0, max: 50000000, step: 50000, unit: '₹' })}
+        ${buildCurrencyControl({ id: 'ttRate', label: 'New Combined ROI (% p.a.)', value: 8.65, min: 6, max: 18, step: 0.05, unit: '%', showWords: false })}
+        ${buildCurrencyControl({ id: 'ttYears', label: 'New Combined Tenure (Years)', value: 15, min: 1, max: 30, step: 1, unit: ' Yrs', showWords: false })}
+        ${buildCurrencyControl({ id: 'ttCharges', label: 'Total Takeover & Processing Charges', value: 25000, min: 0, max: 500000, step: 1000, unit: '₹' })}
+      </div>
+      <div class="lg:col-span-7 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-4" id="ttRes"></div>
+    </div>
+  `;
+  const update = () => {
+    const exist = parseFloat(document.getElementById('ttExist').value) || 0;
+    const topup = parseFloat(document.getElementById('ttTopup').value) || 0;
+    const rate = parseFloat(document.getElementById('ttRate').value) || 0;
+    const years = parseInt(document.getElementById('ttYears').value) || 1;
+    const charges = parseFloat(document.getElementById('ttCharges').value) || 0;
+
+    const totalLoan = exist + topup;
+    const newEmi = calcMonthlyEMI(totalLoan, rate, years * 12);
+    const netCashInHand = Math.max(0, topup - charges);
+
+    document.getElementById('ttRes').innerHTML = `
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        ${buildResultCard('Total Sanctioned (BT + Top-Up)', formatINR(totalLoan), formatLakhsCrores(totalLoan), 'blue')}
+        ${buildResultCard('New Combined Monthly EMI', formatINR(newEmi), `${years} Yrs @ ${rate}%`, 'slate')}
+        ${buildResultCard('Net Top-Up Cash-in-Hand', formatINR(netCashInHand), 'After Charges', 'emerald')}
+        ${buildResultCard('Upfront Takeover Charges', formatINR(charges), 'Deducted', 'amber')}
+      </div>
+    `;
+    latestSnapshot = { title: 'BT + Top-Up Takeover', summaryMetrics: { 'Combined Loan': formatLakhsCrores(totalLoan), 'New EMI': formatINR(newEmi), 'Cash-in-Hand': formatLakhsCrores(netCashInHand) } };
+  };
+  ['ttExist', 'ttTopup', 'ttRate', 'ttYears', 'ttCharges'].forEach(id => bindSyncedInput(id, update, id !== 'ttRate' && id !== 'ttYears'));
+  update();
+}
+
+/**
+ * ============================================================================
+ * SAVED SCENARIOS & SIDE-BY-SIDE COMPARISON DRAWER / MODAL
+ * ============================================================================
+ */
+function promptSaveScenario() {
+  document.getElementById('scenarioNameInput').value = latestSnapshot.title || 'Calculation Snapshot';
+  document.getElementById('modalBackdrop').classList.remove('hidden');
+  document.getElementById('saveModalBox').classList.remove('hidden');
+  document.getElementById('compareModalBox').classList.add('hidden');
+  document.getElementById('scenarioNameInput').focus();
+}
+
+function confirmSaveScenario() {
+  const label = document.getElementById('scenarioNameInput').value.trim() || latestSnapshot.title || 'Saved Scenario';
+  const entry = {
+    id: Date.now(),
+    calcId: currentCalcId,
+    label,
+    timestamp: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
+    metrics: { ...latestSnapshot.summaryMetrics }
+  };
+  savedScenarios.unshift(entry);
+  persistStorage();
+  closeModal();
+  showToast(`Saved "${label}" to LocalStorage`);
+}
+
+function addCurrentToCompare() {
+  if (compareScenarios.length >= 4) {
+    showToast('Comparison table supports up to 4 scenarios. Clear one first.', 'warning');
+    return;
+  }
+  const entry = {
+    id: Date.now(),
+    calcId: currentCalcId,
+    label: latestSnapshot.title || CALCULATORS.find(c => c.id === currentCalcId)?.name || 'Scenario',
+    metrics: { ...latestSnapshot.summaryMetrics }
+  };
+  compareScenarios.push(entry);
+  persistStorage();
+  showToast(`Added "${entry.label}" to Compare (${compareScenarios.length}/4)`);
+}
+
+function openSavedDrawer() {
+  renderSavedDrawerList();
+  document.getElementById('savedDrawerBackdrop').classList.remove('hidden');
+  document.getElementById('savedDrawer').classList.remove('translate-x-full');
+}
+
+function closeSavedDrawer() {
+  document.getElementById('savedDrawerBackdrop').classList.add('hidden');
+  document.getElementById('savedDrawer').classList.add('translate-x-full');
+}
+
+function renderSavedDrawerList() {
+  const listEl = document.getElementById('savedScenariosList');
+  if (savedScenarios.length === 0) {
+    listEl.innerHTML = `<div class="text-center py-12 text-xs text-slate-400">No saved scenarios yet. Click "Save Scenario" on any calculator to bookmark results.</div>`;
+    return;
+  }
+  listEl.innerHTML = savedScenarios.map((item, idx) => `
+    <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 space-y-2">
+      <div class="flex items-start justify-between gap-2">
+        <div>
+          <h4 class="text-xs font-bold text-slate-900">${item.label}</h4>
+          <span class="text-[10px] text-slate-400">${item.timestamp}</span>
+        </div>
+        <div class="flex items-center gap-1">
+          <button onclick="selectCalculator('${item.calcId}'); closeSavedDrawer();" class="px-2 py-1 text-[10px] font-semibold bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100">Open</button>
+          <button onclick="deleteSavedScenario(${idx})" class="p-1 text-slate-400 hover:text-rose-600">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-1.5 pt-1 border-t border-slate-200/60 text-[11px]">
+        ${Object.entries(item.metrics).map(([k, v]) => `
+          <div><span class="text-slate-500">${k}:</span> <strong class="text-slate-800">${v}</strong></div>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+function deleteSavedScenario(idx) {
+  savedScenarios.splice(idx, 1);
+  persistStorage();
+  renderSavedDrawerList();
+}
+
+function clearAllSavedScenarios() {
+  savedScenarios = [];
+  persistStorage();
+  renderSavedDrawerList();
+  showToast('All saved scenarios cleared', 'info');
+}
+
+function openCompareModal() {
+  document.getElementById('modalBackdrop').classList.remove('hidden');
+  document.getElementById('compareModalBox').classList.remove('hidden');
+  document.getElementById('saveModalBox').classList.add('hidden');
+  renderCompareContent();
+}
+
+function renderCompareContent() {
+  const box = document.getElementById('compareModalContent');
+  if (compareScenarios.length === 0) {
+    box.innerHTML = `<div class="text-center py-12 text-sm text-slate-500">No scenarios added to comparison yet. Use the <strong>"Add to Compare"</strong> button on any calculator to compare two or more scenarios side-by-side.</div>`;
+    return;
+  }
+
+  // Collect union of all metric keys
+  const allKeys = Array.from(new Set(compareScenarios.flatMap(s => Object.keys(s.metrics))));
+
+  box.innerHTML = `
+    <div class="overflow-x-auto border border-slate-200 rounded-xl">
+      <table class="w-full text-left text-xs tabular-nums">
+        <thead class="bg-slate-900 text-white">
+          <tr>
+            <th class="px-4 py-3 font-semibold">Parameter / Metric</th>
+            ${compareScenarios.map((s, i) => `
+              <th class="px-4 py-3 font-bold">
+                <div class="flex items-center justify-between gap-2">
+                  <span>${s.label}</span>
+                  <button onclick="removeCompareItem(${i})" class="text-slate-400 hover:text-rose-400 text-xs">✕</button>
+                </div>
+              </th>
+            `).join('')}
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-200">
+          ${allKeys.map(key => `
+            <tr class="hover:bg-slate-50">
+              <td class="px-4 py-3 font-semibold text-slate-700 bg-slate-50/60">${key}</td>
+              ${compareScenarios.map(s => `
+                <td class="px-4 py-3 font-bold text-slate-900">${s.metrics[key] || '—'}</td>
+              `).join('')}
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function removeCompareItem(idx) {
+  compareScenarios.splice(idx, 1);
+  persistStorage();
+  renderCompareContent();
+}
+
+function clearCompareList() {
+  compareScenarios = [];
+  persistStorage();
+  renderCompareContent();
+}
+
+function closeModal() {
+  document.getElementById('modalBackdrop').classList.add('hidden');
+  document.getElementById('saveModalBox').classList.add('hidden');
+  document.getElementById('compareModalBox').classList.add('hidden');
+}
+
+/**
+ * ============================================================================
+ * INITIALIZATION ON WINDOW LOAD
+ * ============================================================================
+ */
+window.onload = function () {
+  updateBadges();
+  renderSidebar();
+  selectCalculator('multi-applicant-eligibility');
+};
+</script>
+</body>
+</html>
